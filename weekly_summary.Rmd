@@ -4,5 +4,39 @@ output: html_document
 date: "2022-11-15"
 ---
 
-## November 15th 2022
+## Nov 14-18, 2022
+### Meeting on Nov 15th
+* GitHub setup, cloned repository
+* Discussed about project background and details
+* Discussed next steps
+  + prepare for the presentation
+  + review *Applied Longitudinal Analysis* (Chapter 11-13)
+* Q&A:
+  + What's the difference between GEE and GLMM?
+    - The interpretation of the parameters is different. The target of inference of GEE is population-average, whereas the GLMM is subject-specific.
+    
+### Accomplishment
+1. Literature Review
+a) Propensity Score methods
+b) Generalized Estimating Equations (GEE)
+c) Time-dependent Covariates (12.1-12.3)
+d) Cardiovascular research
+  * Improved Outcomes Following the Ross Procedure Compared With Bioprosthetic Aortic Valve Replacement
+e) review Generalized linear model
+  
+2. Presentation slides (draft)
 
+3. On-boarding process
+* completed the UHN Office of Research Trainee(ORT) e-registration form
+* returned a signed offer of appointment, Personal Data and Emergency Contact Form and documents from the part A of appendix A(passport & study permit)
+* Start date: December 5, 2022
+* Orientation: Tuesday, December 13, 2022
+
+### Questions
+1.Why GEE with independent working correlation is used for unbiased estimation when the follow-up data is *truncated by death*?
+2.What is the purpose of simulations before using the real data for this study?
+3. How  do we include two correlation matrices for the matched pairs and the longitudinal responses while performing GEE?
+4. What is the robust sandwich estimator? 
+-> solved: section 13.2 from Applied Longitudinal Analysis, 
+$Cov(\hat{\beta}) = B^{-1}MB^{-1}$
+-> can obtain valid standard error for $\hat{\beta}$ under the misspecified model for the within-subject association, with large sample sizes
