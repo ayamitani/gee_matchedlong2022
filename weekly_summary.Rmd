@@ -5,7 +5,7 @@ date: "2022-11-15"
 ---
 
 ## Nov 14-18, 2022
-### Meeting on Nov 15th
+### Meeting on Nov 15
 * GitHub setup, cloned repository
 * Discussed about project background and details
 * Discussed next steps
@@ -34,9 +34,49 @@ e) review Generalized linear model
 
 ### Questions
 1. Why GEE with independent working correlation is used for unbiased estimation when the follow-up data is *truncated by death*?
+- censoring: assume independent, missing not at random
+- GEE: assume missing completely at random. 
+- Inverse probability weighting: dealing with drop-out due to death
+- For this practicum, assume we don't have missing data.
 2. What is the purpose of simulations before using the real data for this study?
+- Logistic problem: we don't have the data yet
+- Need real data to design the simulation study and decide what parameter we're going to use. We want the simulated data as close as the real data. We'll use the real data to do analysis(application/illustration), but won't use it to make any new scientific discoveries.
 3. How  do we include two correlation matrices for the matched pairs and the longitudinal responses while performing GEE?
 4. What is the robust sandwich estimator? 
--> solved: section 13.2 from Applied Longitudinal Analysis, 
+- solved: section 13.2 from Applied Longitudinal Analysis, 
 $Cov(\hat{\beta}) = B^{-1}MB^{-1}$
--> can obtain valid standard error for $\hat{\beta}$ under the misspecified model for the within-subject association, with large sample sizes
+- can obtain valid standard error for $\hat{\beta}$ under the misspecified model for the within-subject association, with large sample sizes
+- robust sandwich estimator VS model-based estimator: generally use the robust sandwich estimator, almost never use the other one (unless if we are sure the correlation structure is correcly specified)
+
+
+## Nov 21-25, 2000
+### Meeting on Nov 22
+* Discussed questions that I had from last week
+* Modified presentation slides
+* Discussed next steps:
+  + read case studies in Chapter 13
+  + use Arthritis Clinical Trial data to perform GEE 
+
+### Accomplishment
+* Presentation preparation
+
+* Arthritis Clinical Trial example:
+  + transformed the data into long format using "pivot_longer"
+  + follow the sample code and fit a marginal proportional odds(ordinal) regression model with independent working correlation matrix
+  + dichotomize the response variable, and fit a Marginal Logistic Regression Model with independent working correlation matrix
+  
+* On-boarding process:
+  + UHN network account access information(TID): t119634uhn
+  + Employee ID: 538335
+  + UHN email address: Peiyu.Li@uhn.ca
+  + Pick up computer on December 8
+  
+### Questions
+1. In the case study Arthritis Clinical Trial in Chapter 13:
+  * Why the model used square-root transformation for time(month)?
+  * Why the GEE estimates in Table 13.12 is different from the results in the sample R program?
+  * Why do the estimates become "NaN" when changing the independent working correlation to an unstructured working correlation?
+  
+2. Dichotomous response variable:
+* Why the sample code uses "ordgee()"function with logit link to fit Marginal Logistic Regression Model?
+* geeglm() gives same result as ordgee() with logit link.
