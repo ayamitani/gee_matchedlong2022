@@ -1,0 +1,88 @@
+---
+title: "Arthritis Clinical Trial"
+author: "Peiyu Li"
+date: "2022-11-26"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Data Description
+Data are from a clinical trial comparing auranofin therapy (3 mg of oral gold, twice daily) and placebo for the treatment of rheumatoid arthritis (Bombardier et al., 1986). In this six-month, randomized, double-blind trial, 303 patients with classic or definite rheumatoid arthritis were randomized to one of the two treatment groups and followed over time.
+
+The outcome variable is a global impression scale (*Arthritis Categorical Scale*) measured at baseline (month 0), month 2, month 4, and month 6. This is a self-assessment of a patient's current arthritis, measured on a 5-level ordinal scale: (1) very good, (2) good, (3) fair, (4) poor, and (5) very poor. Baseline data on this outcome variable are available for 303 of the patients who participated in this trial; follow-up data at 6 months are available for 294 patients.
+
+Variable List:
+ID, Treatment (0=placebo, 1=auranofin therapy), baseline age (years), Arthritis Categorical Scale month 0, Arthritis Categorical Scale month 2, Arthritis Categorical Scale month 4, Arthritis Categorical Scale month 6.
+
+## Objective
+Goal: assess changes in the odds of a more favorable response over the duration of the study, and determine whether treatment with auranofin has an influence on these changes.
+
+Letting $Y_{ij}$ denote the ordinal response for the $i^{th}$ subject at the $j^{th}$ occasion, we assume that the log odds of a more favorable response at each occasion follows the proportional odds model
+$$
+log\{\frac{Pr(Y_{ij} \leq k)}{Pr(Y_{ij}>k)}\}=\alpha_k + \beta_1Trt_i + \beta_2\sqrt{Month_{ij}} + \beta_3Trt_i \times \sqrt{Month_{ij}}
+$$
+
+
+```{r}
+#Load data:
+#library(foreign)
+arthritis <- read.dta("arthritis.dta")
+
+#transform data into long format
+arthritis_long <- arthritis %>% pivot_longer(
+  cols=starts_with("y"),
+  names_to = "time",
+  names_prefix = "y",
+  values_to = "y",
+  values_drop_na = TRUE) #drop missing values
+
+#attach(arthritis_long)
+arthritis_long$time <- as.numeric(arthritis_long$time)
+arthritis_long$y <- as.factor(arthritis_long$y)
+arthritis_long$month <- 2*(arthritis_long$time-1)
+arthritis_long$sqrtmonth <- arthritis_long$month^0.5
+```
+
+## Ordinal responses
+```{r}
+#library(geepack)
+summary(ordgee(ordered(y) ~ trt + sqrtmonth + trt:sqrtmonth, id = id, 
+                waves=time, corstr=("independence"), data = arthritis_long))
+
+summary(ordgee(ordered(y) ~ trt + sqrtmonth + trt:sqrtmonth, id = id, 
+               waves=time, corstr=("unstructured"), data = arthritis_long))
+```
+
+## Dichotomous response variable
+* If the Arthritis Categorical Scale is (1) very good or (2) good, the new response variable y1 = 1. 
+* If the Arthritis Categorical Scale is (3) fair or (4) poor or (5) very poor, the new response variable y1 = 0.
+
+```{r}
+arthritis_long <- arthritis_long %>% 
+  mutate(y1 = case_when(y==1 | y==2 ~ 1, #very good | good
+                        y==3 | y==4 | y==5 ~ 0)) #fair | poor | very poor
+arthritis_long$y1 <- as.factor(arthritis_long$y1)
+
+
+
+model1 <- ordgee(ordered(y1) ~ trt + sqrtmonth + trt:sqrtmonth, 
+                 data = arthritis_long, id = id, 
+                 waves = time, mean.link = "logit", 
+                 corstr = "independence")
+summary(model1)
+ 
+#SAME AS:
+gee.in <- geeglm(y1 ~ trt + sqrtmonth + trt:sqrtmonth, data = arthritis_long,
+              family = "binomial", id=id, 
+              corstr = "independence", scale.fix = TRUE)
+summary(gee.in)
+QIC(gee.in)
+```
+
+
+
