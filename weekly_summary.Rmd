@@ -49,7 +49,7 @@ $Cov(\hat{\beta}) = B^{-1}MB^{-1}$
 - robust sandwich estimator VS model-based estimator: generally use the robust sandwich estimator, almost never use the other one (unless if we are sure the correlation structure is correcly specified)
 
 
-## Nov 21-25, 2000
+## Nov 21-25, 2022
 ### Meeting on Nov 22
 * Discussed questions that I had from last week
 * Modified presentation slides
@@ -73,10 +73,13 @@ $Cov(\hat{\beta}) = B^{-1}MB^{-1}$
   
 ### Questions
 1. In the case study Arthritis Clinical Trial in Chapter 13:
-  * Why the model used square-root transformation for time(month)?
-  * Why the GEE estimates in Table 13.12 is different from the results in the sample R program?
-  * Why do the estimates become "NaN" when changing the independent working correlation to an unstructured working correlation?
+  a) Why the model used square-root transformation for time(month)?
+  b) Why the GEE estimates in Table 13.12 is different from the results in the sample R program?
+  c) When I changed the correlation structure in the model from independent to unstructured, the estimates in the output became "NaN". What other changes I should make to avoid this issue?
   
 2. Dichotomous response variable:
-* Why the sample code uses "ordgee()"function with logit link to fit Marginal Logistic Regression Model?
-* geeglm() gives same result as ordgee() with logit link.
+  a) Why the sample code uses *ordgee()* function with logit link to fit both Marginal Logistic Regression Model and Marginal Proportional Odds (Ordinal) Regression Model? Since the interpretation of the parameters is quite different for these two models.
+  b) geeglm() gives same result as ordgee() with logit link. Are there any differences in using these two functions?
+  
+  
+  
