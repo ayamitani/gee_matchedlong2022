@@ -74,12 +74,41 @@ $Cov(\hat{\beta}) = B^{-1}MB^{-1}$
 ### Questions
 1. In the case study Arthritis Clinical Trial in Chapter 13:
   a) Why the model used square-root transformation for time(month)?
-  b) Why the GEE estimates in Table 13.12 is different from the results in the sample R program?
-  c) When I changed the correlation structure in the model from independent to unstructured, the estimates in the output became "NaN". What other changes I should make to avoid this issue?
-  
+    + month(0,2,4,6) --> (0,1.4,2,2,45), after square-root transformation, the difference is getting smaller as time increases. Instead of assuming linear effect, we assume the difference on treatment effect is largest for the first visit, and smallest for the last visit.
+  b) When I changed the correlation structure in the model from independent to unstructured, the estimates in the output became "NaN". What other changes I should make to avoid this issue?
+    + probably because different R version
+    
 2. Dichotomous response variable:
-  a) Why the sample code uses *ordgee()* function with logit link to fit both Marginal Logistic Regression Model and Marginal Proportional Odds (Ordinal) Regression Model? Since the interpretation of the parameters is quite different for these two models.
-  b) geeglm() gives same result as ordgee() with logit link. Are there any differences in using these two functions?
+  Why the sample code uses *ordgee()* function with logit link to fit both Marginal Logistic Regression Model and Marginal Proportional Odds (Ordinal) Regression Model? Since the interpretation of the parameters is quite different for these two models.
+  geeglm() gives same result as ordgee() with logit link. Are there any differences in using these two functions?
+   + $\alpha$ in ordgee() output provides estimate of the *odds ratio parameter*.
+   + $\alpha$ in geeglm() output provides estimate of the *correlation parameters*, and $-1 \leq \alpha \leq 1$.
+
   
   
+## Nov 28 - Dec 02, 2022
+### Meeting on Nov 29
+1. R function options:
+  - waves: Variable specifying the ordering of repeated measurements on the same unit (tells R the dimension of correlation matrix). Also used in connection with missing values. 
+  - scale.fix: If true, it's fix at the value of 'scale.value'(by default at 1) rather than estimated. Scale is 1 for logistic regression.
+2. Next steps:
+  - Use arthritis dataset (303 individuals), compare parameter coefficients, standard errors, and QIC for each model using different correlation structure.
+  - Randomly select 50 and 20 individuals, do the comparison again.
+  
+### Accomplishment
+*End of term presentation on Dec 1
+*Completed Health Services mandatory immunization requirements
+*Completed UHN mandatory trainings
+
+  
+### Questions
+
+
+## Dec 05 - Dev 09, 2022
+### No Meeting (Exam Week)
+### Accomplishement
+*Picked up computer
+
+## Dec 12 - Dec 16, 2022
+### Meeting on Dec13
   
