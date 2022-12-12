@@ -96,19 +96,52 @@ $Cov(\hat{\beta}) = B^{-1}MB^{-1}$
   - Randomly select 50 and 20 individuals, do the comparison again.
   
 ### Accomplishment
-*End of term presentation on Dec 1
-*Completed Health Services mandatory immunization requirements
-*Completed UHN mandatory trainings
 
-  
-### Questions
-
+* End of term presentation on Dec 1
+* Completed Health Services mandatory immunization requirements
+* Completed UHN mandatory trainings
 
 ## Dec 05 - Dev 09, 2022
 ### No Meeting (Exam Week)
 ### Accomplishement
-*Picked up computer
+
+* Picked up computer, met with Kate and Sudip
+* UHN orientation
+* Made comparison tables for different GEE regressions using four correlation structures and different sample sizes.
+
+### Questions
+
+1. Since I dropped rows that contained missing values after converting the data into long format, does it matter that some subjects do not have all the 4 measurements (and we specified "waves=time")? 
+
+2. When should we set scale.fix to be false? Why the scale parameter becomes 1.01 instead of 1 when only included 20 subjects?
+
+3. Why there's only 1 estimate (alpha) for the correlation parameters using "ar1" correlation structure?
+
+4. QIC() function provides not only QIC values, do we also need other criterions for the comparison tables?
+
+5. How to interpret the results based on the comparisons?
+* The effect of 'sqrtmonth' became insignificant when the sample size decreased
+* standard errors for time-related variables increased as the sample size decreased.
+* QIC for different correlation structured were almost the same for a given sample size, but QIC decreased as the sample size decreased.
+
+6. For propensity score matching, do we need to consider caliper distance when performing the matching?
 
 ## Dec 12 - Dec 16, 2022
 ### Meeting on Dec13
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   

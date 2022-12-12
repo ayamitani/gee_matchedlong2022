@@ -491,24 +491,113 @@ Regression Model with independent working correlation matrix</li>
 <li>In the case study Arthritis Clinical Trial in Chapter 13:</li>
 </ol>
 <ol style="list-style-type: lower-alpha">
-<li>Why the model used square-root transformation for time(month)?</li>
-<li>Why the GEE estimates in Table 13.12 is different from the results
-in the sample R program?</li>
+<li>Why the model used square-root transformation for time(month)? +
+month(0,2,4,6) –&gt; (0,1.4,2,2,45), after square-root transformation,
+the difference is getting smaller as time increases. Instead of assuming
+linear effect, we assume the difference on treatment effect is largest
+for the first visit, and smallest for the last visit.</li>
 <li>When I changed the correlation structure in the model from
 independent to unstructured, the estimates in the output became “NaN”.
-What other changes I should make to avoid this issue?</li>
+What other changes I should make to avoid this issue? + probably because
+different R version</li>
 </ol>
 <ol start="2" style="list-style-type: decimal">
-<li>Dichotomous response variable:</li>
+<li>Dichotomous response variable: Why the sample code uses
+<em>ordgee()</em> function with logit link to fit both Marginal Logistic
+Regression Model and Marginal Proportional Odds (Ordinal) Regression
+Model? Since the interpretation of the parameters is quite different for
+these two models. geeglm() gives same result as ordgee() with logit
+link. Are there any differences in using these two functions?
+<ul>
+<li><span class="math inline">\(\alpha\)</span> in ordgee() output
+provides estimate of the <em>odds ratio parameter</em>.</li>
+<li><span class="math inline">\(\alpha\)</span> in geeglm() output
+provides estimate of the <em>correlation parameters</em>, and <span class="math inline">\(-1 \leq \alpha \leq 1\)</span>.</li>
+</ul></li>
 </ol>
-<ol style="list-style-type: lower-alpha">
-<li>Why the sample code uses <em>ordgee()</em> function with logit link
-to fit both Marginal Logistic Regression Model and Marginal Proportional
-Odds (Ordinal) Regression Model? Since the interpretation of the
-parameters is quite different for these two models.</li>
-<li>geeglm() gives same result as ordgee() with logit link. Are there
-any differences in using these two functions?</li>
+</div>
+</div>
+<div id="nov-28---dec-02-2022" class="section level2">
+<h2>Nov 28 - Dec 02, 2022</h2>
+<div id="meeting-on-nov-29" class="section level3">
+<h3>Meeting on Nov 29</h3>
+<ol style="list-style-type: decimal">
+<li>R function options:</li>
 </ol>
+<ul>
+<li>waves: Variable specifying the ordering of repeated measurements on
+the same unit (tells R the dimension of correlation matrix). Also used
+in connection with missing values.</li>
+<li>scale.fix: If true, it’s fix at the value of ‘scale.value’(by
+default at 1) rather than estimated. Scale is 1 for logistic
+regression.</li>
+</ul>
+<ol start="2" style="list-style-type: decimal">
+<li>Next steps:</li>
+</ol>
+<ul>
+<li>Use arthritis dataset (303 individuals), compare parameter
+coefficients, standard errors, and QIC for each model using different
+correlation structure.</li>
+<li>Randomly select 50 and 20 individuals, do the comparison again.</li>
+</ul>
+</div>
+<div id="accomplishment-2" class="section level3">
+<h3>Accomplishment</h3>
+<ul>
+<li>End of term presentation on Dec 1</li>
+<li>Completed Health Services mandatory immunization requirements</li>
+<li>Completed UHN mandatory trainings</li>
+</ul>
+</div>
+</div>
+<div id="dec-05---dev-09-2022" class="section level2">
+<h2>Dec 05 - Dev 09, 2022</h2>
+<div id="no-meeting-exam-week" class="section level3">
+<h3>No Meeting (Exam Week)</h3>
+</div>
+<div id="accomplishement" class="section level3">
+<h3>Accomplishement</h3>
+<ul>
+<li>Picked up computer, met with Kate and Sudip</li>
+<li>UHN orientation</li>
+<li>Made comparison tables for different GEE regressions using four
+correlation structures and different sample sizes.</li>
+</ul>
+</div>
+<div id="questions-2" class="section level3">
+<h3>Questions</h3>
+<ol style="list-style-type: decimal">
+<li><p>Since I dropped rows that contained missing values after
+converting the data into long format, does it matter that some subjects
+do not have all the 4 measurements (and we specified
+“waves=time”)?</p></li>
+<li><p>When should we set scale.fix to be false? Why the scale parameter
+becomes 1.01 instead of 1 when only included 20 subjects?</p></li>
+<li><p>Why there’s only 1 estimate (alpha) for the correlation
+parameters using “ar1” correlation structure?</p></li>
+<li><p>QIC() function provides not only QIC values, do we also need
+other criterions for the comparison tables?</p></li>
+<li><p>How to interpret the results based on the comparisons?</p></li>
+</ol>
+<ul>
+<li>The effect of ‘sqrtmonth’ became insignificant when the sample size
+decreased</li>
+<li>standard errors for time-related variables increased as the sample
+size decreased.</li>
+<li>QIC for different correlation structured were almost the same for a
+given sample size, but QIC decreased as the sample size decreased.</li>
+</ul>
+<ol start="6" style="list-style-type: decimal">
+<li>For propensity score matching, do we need to consider caliper
+distance when performing the matching?</li>
+</ol>
+</div>
+</div>
+<div id="dec-12---dec-16-2022" class="section level2">
+<h2>Dec 12 - Dec 16, 2022</h2>
+<div id="meeting-on-dec13" class="section level3">
+<h3>Meeting on Dec13</h3>
 </div>
 </div>
 
