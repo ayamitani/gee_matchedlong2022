@@ -3,15 +3,15 @@ title: "Arthritis Clinical Trial"
 author: "Peiyu Li"
 date: "2022-11-26"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-
-## Data Description
+# Nov21-25
+## 1)Data Description
 Data are from a clinical trial comparing auranofin therapy (3 mg of oral gold, twice daily) and placebo for the treatment of rheumatoid arthritis (Bombardier et al., 1986). In this six-month, randomized, double-blind trial, 303 patients with classic or definite rheumatoid arthritis were randomized to one of the two treatment groups and followed over time.
 
 The outcome variable is a global impression scale (*Arthritis Categorical Scale*) measured at baseline (month 0), month 2, month 4, and month 6. This is a self-assessment of a patient's current arthritis, measured on a 5-level ordinal scale: (1) very good, (2) good, (3) fair, (4) poor, and (5) very poor. Baseline data on this outcome variable are available for 303 of the patients who participated in this trial; follow-up data at 6 months are available for 294 patients.
@@ -19,7 +19,7 @@ The outcome variable is a global impression scale (*Arthritis Categorical Scale*
 Variable List:
 ID, Treatment (0=placebo, 1=auranofin therapy), baseline age (years), Arthritis Categorical Scale month 0, Arthritis Categorical Scale month 2, Arthritis Categorical Scale month 4, Arthritis Categorical Scale month 6.
 
-## Objective
+### Objective
 Goal: assess changes in the odds of a more favorable response over the duration of the study, and determine whether treatment with auranofin has an influence on these changes.
 
 Letting $Y_{ij}$ denote the ordinal response for the $i^{th}$ subject at the $j^{th}$ occasion, we assume that the log odds of a more favorable response at each occasion follows the proportional odds model
@@ -32,6 +32,8 @@ $$
 #Load data:
 #library(foreign)
 arthritis <- read.dta("arthritis.dta")
+
+#arthritis <- arthritis %>% drop_na()
 
 #transform data into long format
 arthritis_long <- arthritis %>% pivot_longer(
@@ -48,17 +50,18 @@ arthritis_long$month <- 2*(arthritis_long$time-1)
 arthritis_long$sqrtmonth <- arthritis_long$month^0.5
 ```
 
-## Ordinal responses
-```{r}
+### Ordinal responses
+```{r,include=FALSE}
 #library(geepack)
 summary(ordgee(ordered(y) ~ trt + sqrtmonth + trt:sqrtmonth, id = id, 
                 waves=time, corstr=("independence"), data = arthritis_long))
 
-summary(ordgee(ordered(y) ~ trt + sqrtmonth + trt:sqrtmonth, id = id, 
-               waves=time, corstr=("unstructured"), data = arthritis_long))
+# summary(ordgee(ordered(y) ~ trt + sqrtmonth + trt:sqrtmonth, id = id, 
+#                waves=time, corstr=("exchangeable"), data = arthritis_long))
 ```
 
-## Dichotomous response variable
+## 2)Dichotomous response variable
+### ordgee & geeglm
 * If the Arthritis Categorical Scale is (1) very good or (2) good, the new response variable y1 = 1. 
 * If the Arthritis Categorical Scale is (3) fair or (4) poor or (5) very poor, the new response variable y1 = 0.
 
@@ -66,23 +69,307 @@ summary(ordgee(ordered(y) ~ trt + sqrtmonth + trt:sqrtmonth, id = id,
 arthritis_long <- arthritis_long %>% 
   mutate(y1 = case_when(y==1 | y==2 ~ 1, #very good | good
                         y==3 | y==4 | y==5 ~ 0)) #fair | poor | very poor
-arthritis_long$y1 <- as.factor(arthritis_long$y1)
 
-
-
-model1 <- ordgee(ordered(y1) ~ trt + sqrtmonth + trt:sqrtmonth, 
-                 data = arthritis_long, id = id, 
-                 waves = time, mean.link = "logit", 
-                 corstr = "independence")
-summary(model1)
+#arthritis_long$y1 <- as.factor(arthritis_long$y1)
+model1 <- ordgee(ordered(y1) ~ trt + sqrtmonth + trt:sqrtmonth,
+                data = arthritis_long, id = id,
+                waves = time, mean.link = "logit",
+                corstr = "unstructured")
+#summary(model1)
  
 #SAME AS:
 gee.in <- geeglm(y1 ~ trt + sqrtmonth + trt:sqrtmonth, data = arthritis_long,
-              family = "binomial", id=id, 
-              corstr = "independence", scale.fix = TRUE)
-summary(gee.in)
-QIC(gee.in)
+              family = "binomial", id=id, waves = time,
+              corstr = "ar1", scale.fix = TRUE)
+#summary(gee.in)
+#QIC(gee.in)
 ```
 
+# Nov 28-Dec 2
+# Dec 5-9
+1) Extract details from glm() models for table construction using screenreg() from *texreg* package. 
+```{r}
+# library(texreg)
 
+extract.glm <- function(model, include.aic = FALSE, include.bic = FALSE,
+                        include.loglik = FALSE, include.deviance = FALSE,
+                        include.nobs = TRUE, ...) {
+  s <- summary(model, ...)
+
+  coefficient.names <- rownames(s$coef)
+  coefficients <- s$coef[, 1]
+  standard.errors <- s$coef[, 2]
+  significance <- s$coef[, 4]
+
+  aic <- AIC(model)
+  bic <- BIC(model)
+  lik <- logLik(model)[1]
+  dev <- deviance(model)
+  n <- nobs(model)
+
+  gof <- numeric()
+  gof.names <- character()
+  gof.decimal <- logical()
+  if (include.aic == TRUE) {
+    gof <- c(gof, aic)
+    gof.names <- c(gof.names, "AIC")
+    gof.decimal <- c(gof.decimal, TRUE)
+  }
+  if (include.bic == TRUE) {
+    gof <- c(gof, bic)
+    gof.names <- c(gof.names, "BIC")
+    gof.decimal <- c(gof.decimal, TRUE)
+  }
+  if (include.loglik == TRUE) {
+    gof <- c(gof, lik)
+    gof.names <- c(gof.names, "Log Likelihood")
+    gof.decimal <- c(gof.decimal, TRUE)
+  }
+  if (include.deviance == TRUE) {
+    gof <- c(gof, dev)
+    gof.names <- c(gof.names, "Deviance")
+    gof.decimal <- c(gof.decimal, TRUE)
+  }
+  if (include.nobs == TRUE) {
+    gof <- c(gof, n)
+    gof.names <- c(gof.names, "Num. obs.")
+    gof.decimal <- c(gof.decimal, FALSE)
+  }
+
+  tr <- createTexreg(
+    coef.names = coefficient.names,
+    coef = coefficients,
+    se = standard.errors,
+    pvalues = significance,
+    gof.names = gof.names,
+    gof = gof,
+    gof.decimal = gof.decimal
+  )
+  return(tr)
+}
+# Finally, the new function needs to be registered as a method for the generic extract function. This is done using a simple command:
+setMethod("extract", signature = className("glm", "stats"),
+          definition = extract.glm)
+```
+
+2) Extract details from geeglm() models for table construction using screenreg() from *texreg* package. 
+* did not include correlation (since different correlation structures have different number of correlation estimates)
+* added QIC statistics
+
+```{r}
+extract.geeglm <- function(model,
+                           include.scale = TRUE,
+                           include.correlation = FALSE,
+                           include.nobs = TRUE,
+                           include.qic = TRUE,
+                           ...) {
+  s <- summary(model)
+  names <- rownames(s$coef)
+  co <- s$coef[, 1]
+  se <- s$coef[, 2]
+  pval <- s$coef[, 4]
+
+  gof <- numeric()
+  gof.names <- character()
+  gof.decimal <- logical()
+
+  if (include.scale == TRUE) {
+    gof = c(gof, s$geese$scale$estimate, s$geese$scale$san.se)
+    gof.names = c(gof.names, "Scale parameter: gamma", "Scale parameter: SE")
+    gof.decimal = c(gof.decimal, TRUE, TRUE)
+  }
+  if (include.correlation == TRUE) {
+    gof = c(gof, s$geese$correlation$estimate, s$geese$correlation$san.se)
+    gof.names = c(gof.names, "Correlation parameter: alpha",
+                  "Correlation parameter: SE")
+    gof.decimal = c(gof.decimal, TRUE, TRUE)
+  }
+  if (include.nobs == TRUE) {
+    n <- nrow(model.frame(model))
+    nclust <- length(s$geese$clusz)
+    gof = c(gof, n, nclust)
+    gof.names = c(gof.names, "Num. obs.", "Num. clust.")
+    gof.decimal = c(gof.decimal, FALSE, FALSE)
+  }
+  if (include.qic == TRUE){       #add QIC into extract.geeglm
+    gof = c(gof, QIC(model)[1])
+    gof.names = c(gof.names, "QIC")
+    gof.decimal = c(gof.decimal, TRUE)
+  }
+  tr <- createTexreg(
+    coef.names = names,
+    coef = co,
+    se = se,
+    pvalues = pval,
+    gof.names = gof.names,
+    gof = gof,
+    gof.decimal = gof.decimal
+  )
+  return(tr)
+}
+# Finally, the new function needs to be registered as a method for the generic extract function. This is done using a simple command:
+setMethod("extract", signature = className("geeglm", "geepack"),
+          definition = extract.geeglm)
+```
+
+## 1) n = 303
+
+```{r}
+mod1 <- glm(y1 ~ trt + sqrtmonth + trt:sqrtmonth, data = arthritis_long,
+              family = "binomial")
+mod2 <- geeglm(y1 ~ trt + sqrtmonth + trt:sqrtmonth, data = arthritis_long,
+              family = "binomial", id=id, waves = time,
+              corstr = "independence", scale.fix = TRUE)
+mod3 <- geeglm(y1 ~ trt + sqrtmonth + trt:sqrtmonth, data = arthritis_long,
+              family = "binomial", id=id, waves = time, 
+              corstr = "exchangeable", scale.fix = TRUE)
+mod4 <- geeglm(y1 ~ trt + sqrtmonth + trt:sqrtmonth, data = arthritis_long,
+              family = "binomial", id=id, waves = time, 
+              corstr = "ar1", scale.fix = TRUE)
+mod5 <- geeglm(y1 ~ trt + sqrtmonth + trt:sqrtmonth, data = arthritis_long,
+              family = "binomial", id=id, #waves = time, 
+              corstr = "unstructured", scale.fix = TRUE)
+#summary(mod3)
+
+# screenreg(list(mod1,mod2,mod3,mod4,mod5),single.row = FALSE,
+#           custom.header = list("GLM"=1,"GEE"=2:5),
+#           custom.model.names = c("Logistic","Independence","Exchangeable",
+#                                  "AR(1)","Unstructured"),
+#           caption="Table1", caption.above=TRUE)
+``` 
+
+```{r}
+Table1<-htmlreg(list(mod1,mod2,mod3,mod4,mod5),single.row = FALSE,
+          custom.header = list("GLM"=1,"GEE"=2:5),
+          custom.model.names = c(" ","Independence","Exchangeable",
+                                 "AR(1)","Unstructured"),
+          caption="Table 1: Comparisons of GEE Regressions(N=303 individuals)", caption.above=TRUE)
+htmltools::HTML(Table1)
+```
+
+## 2) n = 50
+
+* Randomly select 50 individuals from the original dataset.
+```{r}
+set.seed(2)
+list_50 <- sample(1:nrow(arthritis), 50, replace = FALSE)
+arthritis_50 <- arthritis_long[arthritis_long$id %in% list_50,]
+
+mod1_50 <- glm(y1 ~ trt + sqrtmonth + trt:sqrtmonth, data = arthritis_50,
+              family = "binomial")
+mod2_50 <- geeglm(y1 ~ trt + sqrtmonth + trt:sqrtmonth, data = arthritis_50,
+              family = "binomial", id=id, waves = time, 
+              corstr = "independence", scale.fix = TRUE)
+mod3_50 <- geeglm(y1 ~ trt + sqrtmonth + trt:sqrtmonth, data = arthritis_50,
+              family = "binomial", id=id, waves = time, 
+              corstr = "exchangeable", scale.fix = TRUE)
+mod4_50 <- geeglm(y1 ~ trt + sqrtmonth + trt:sqrtmonth, data = arthritis_50,
+              family = "binomial", id=id, waves = time, 
+              corstr = "ar1", scale.fix = TRUE)
+mod5_50 <- geeglm(y1 ~ trt + sqrtmonth + trt:sqrtmonth, data = arthritis_50,
+              family = "binomial", id=id, waves = time,
+              corstr = "unstructured", scale.fix = TRUE)
+
+Table2<-htmlreg(list(mod1_50,mod2_50,mod3_50,mod4_50,mod5_50),single.row = FALSE,
+          custom.header = list("GLM"=1,"GEE"=2:5),
+          custom.model.names = c(" ","Independence","Exchangeable",
+                                 "AR(1)","Unstructured"),
+          caption="Table 2: Comparisons of GEE Regressions(N=50 individuals)", caption.above=TRUE)
+htmltools::HTML(Table2)
+```
+
+## 3) n = 20
+
+* Randomly select 20 individuals from the original dataset.
+```{r}
+set.seed(2)
+list_20 <- sample(1:nrow(arthritis), 20, replace = FALSE)
+arthritis_20 <- arthritis_long[arthritis_long$id %in% list_20,]
+
+mod1_20 <- glm(y1 ~ trt + sqrtmonth + trt:sqrtmonth, data = arthritis_20,
+              family = "binomial")
+mod2_20 <- geeglm(y1 ~ trt + sqrtmonth + trt:sqrtmonth, data = arthritis_20,
+              family = "binomial", id=id, waves = time, 
+              corstr = "independence", scale.fix = TRUE)
+mod3_20 <- geeglm(y1 ~ trt + sqrtmonth + trt:sqrtmonth, data = arthritis_20,
+              family = "binomial", id=id, waves = time, 
+              corstr = "exchangeable", scale.fix = TRUE)
+mod4_20 <- geeglm(y1 ~ trt + sqrtmonth + trt:sqrtmonth, data = arthritis_20,
+              family = "binomial", id=id, waves = time, 
+              corstr = "ar1", scale.fix = TRUE)
+mod5_20 <- geeglm(y1 ~ trt + sqrtmonth + trt:sqrtmonth, data = arthritis_20,
+              family = "binomial", id=id, waves = time, 
+              corstr = "unstructured", scale.fix = TRUE)
+
+Table3<-htmlreg(list(mod1_20,mod2_20,mod3_20,mod4_20,mod5_20),single.row = FALSE,
+          custom.header = list("GLM"=1,"GEE"=2:5),
+          custom.model.names = c(" ","Independence","Exchangeable",
+                                 "AR(1)","Unstructured"),
+          caption="Table 3: Comparisons of GEE Regressions(N=20 individuals)", caption.above=TRUE)
+htmltools::HTML(Table3)
+```
+
+## Matching
+Packages: optmatch, cobalt
+
+### a) optimal pair matching
+
+* no restrictions are placed upon the maximum acceptable difference between the propensity scores of two matched subjects.
+
+```{r}
+#library(optmatch)
+
+# subject 211 has missing age value
+arthritis <- arthritis %>% filter(!is.na(age))
+
+#check the number of treated and control subjects
+table(arthritis$trt)
+
+ps <- glm(trt ~ age, family = binomial, data=arthritis)
+
+#match directly on the propensity score without restricting the sample to the region of overlap
+ps.pm <- pairmatch(ps, data=arthritis)
+summary(ps.pm)
+```
+
+```{r}
+# print(ps.pm, grouped=TRUE)
+#join the match factor back to the original data.frame
+arthritis.matched <- data.frame(arthritis, matches = ps.pm, check.rows=TRUE)
+
+arthritis.matched <- arthritis.matched %>% filter(!is.na(matches)) 
+```
+
+### b) caliper distance
+* Matching within a specified *caliper distance* 
+* further restriction that the absolute difference in the propensity scores of matched subjects must be below some prespecified threshold (the caliper distance).
+* we want to imply a caliper to the distances generated by the propensity score model
+* To do this requires a more explicit generation of the match, involving separate steps for generation of the distances followed by matching upon those distances.
+
+```{r}
+# First, we create a distance matrix based upon ps:
+ps.dist <- match_on(ps, data = arthritis)
+#summary(ps.dist)
+```
+
+ps.dist is a matrix with an entry corresponding to the distance between each potential pair of treatment and control units. We can caliper directly on this distance matrix:
+```{r}
+#caliper(ps.dist,2)
+
+ps.pm2 <- pairmatch(ps.dist + caliper(ps.dist, 2), data = arthritis)
+#all.equal(ps.pm, ps.pm2, check.attributes=FALSE)
+summary(ps.pm2)
+```
+Entries which are Inf will never be matched. Adding the caliper to ps.dist will disallow matching between units which differ by more than 2 standard deviations.
+
+### c) checking balance
+
+```{r}
+library(cobalt)
+
+covs0 <- subset(arthritis, select = c(age))
+p.score <- ps$fitted.values #get the propensity score
+
+bal.tab(ps.pm, covs = covs0, distance = ~p.score)
+```
 
