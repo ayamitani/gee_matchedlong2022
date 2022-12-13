@@ -111,20 +111,21 @@ $Cov(\hat{\beta}) = B^{-1}MB^{-1}$
 
 ### Questions
 
-1. Since I dropped rows that contained missing values after converting the data into long format, does it matter that some subjects do not have all the 4 measurements (and we specified "waves=time")? 
+1. If the numbers of repeated measurements are not the same (e.g. contain missing values), how can we specify "waves" parameter in geeglm()? Should I specify "waves" parameter as a list of numbers of observations for each subject?
 
-2. When should we set scale.fix to be false? Why the scale parameter becomes 1.01 instead of 1 when only included 20 subjects?
+2. a) When should we set scale.fix to be false and allow the scale to be estimated from the data? 
+ b) Does scale.fix=FALSE provide more efficient and accurate estimates of the regression coefficients? 
+ c) Why the scale parameter becomes 1.01 instead of 1 when only included 20 subjects?
+  + When using the geeglm() function in R with a small sample size and scale.fix=TRUE, the estimated scale parameter may not be exactly equal to 1. 
 
-3. Why there's only 1 estimate (alpha) for the correlation parameters using "ar1" correlation structure?
+3. I used geepack::geeglm function for the comparison, and we can directly use QIC function. However, gee:gee function can provide both naive standard errors and robust standard error, and we can also get estimated correlation structure matrix in the summary output for gee() function. 
 
-4. QIC() function provides not only QIC values, do we also need other criterions for the comparison tables?
-
-5. How to interpret the results based on the comparisons?
+4. How to interpret the results based on the comparisons?
 * The effect of 'sqrtmonth' became insignificant when the sample size decreased
 * standard errors for time-related variables increased as the sample size decreased.
 * QIC for different correlation structured were almost the same for a given sample size, but QIC decreased as the sample size decreased.
 
-6. For propensity score matching, do we need to consider caliper distance when performing the matching?
+5. For propensity score matching, do we need to consider caliper distance when performing the matching?
 
 ## Dec 12 - Dec 16, 2022
 ### Meeting on Dec13

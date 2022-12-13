@@ -568,16 +568,32 @@ correlation structures and different sample sizes.</li>
 <div id="questions-2" class="section level3">
 <h3>Questions</h3>
 <ol style="list-style-type: decimal">
-<li><p>Since I dropped rows that contained missing values after
-converting the data into long format, does it matter that some subjects
-do not have all the 4 measurements (and we specified
-“waves=time”)?</p></li>
-<li><p>When should we set scale.fix to be false? Why the scale parameter
-becomes 1.01 instead of 1 when only included 20 subjects?</p></li>
-<li><p>Why there’s only 1 estimate (alpha) for the correlation
-parameters using “ar1” correlation structure?</p></li>
-<li><p>QIC() function provides not only QIC values, do we also need
-other criterions for the comparison tables?</p></li>
+<li><p>If the numbers of repeated measurements are not the same
+(e.g. contain missing values), how can we specify “waves” parameter in
+geeglm()? Should I specify “waves” parameter as a list of numbers of
+observations for each subject?</p></li>
+<li><ol style="list-style-type: lower-alpha">
+<li>When should we set scale.fix to be false and allow the scale to be
+estimated from the data?</li>
+</ol></li>
+</ol>
+<ol start="2" style="list-style-type: lower-alpha">
+<li>Does scale.fix=FALSE provide more efficient and accurate estimates
+of the regression coefficients?</li>
+<li>Why the scale parameter becomes 1.01 instead of 1 when only included
+20 subjects?</li>
+</ol>
+<ul>
+<li>When using the geeglm() function in R with a small sample size and
+scale.fix=TRUE, the estimated scale parameter may not be exactly equal
+to 1.</li>
+</ul>
+<ol start="3" style="list-style-type: decimal">
+<li><p>I used geepack::geeglm function for the comparison, and we can
+directly use QIC function. However, gee:gee function can provide both
+naive standard errors and robust standard error, and we can also get
+estimated correlation structure matrix in the summary output for gee()
+function.</p></li>
 <li><p>How to interpret the results based on the comparisons?</p></li>
 </ol>
 <ul>
@@ -588,7 +604,7 @@ size decreased.</li>
 <li>QIC for different correlation structured were almost the same for a
 given sample size, but QIC decreased as the sample size decreased.</li>
 </ul>
-<ol start="6" style="list-style-type: decimal">
+<ol start="5" style="list-style-type: decimal">
 <li>For propensity score matching, do we need to consider caliper
 distance when performing the matching?</li>
 </ol>
