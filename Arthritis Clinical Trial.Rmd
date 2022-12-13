@@ -41,7 +41,7 @@ arthritis_long <- arthritis %>% pivot_longer(
   names_to = "time",
   names_prefix = "y",
   values_to = "y",
-  values_drop_na = TRUE) #drop missing values
+  values_drop_na = FALSE) #drop missing values?
 
 #attach(arthritis_long)
 arthritis_long$time <- as.numeric(arthritis_long$time)
@@ -308,6 +308,26 @@ Table3<-htmlreg(list(mod1_20,mod2_20,mod3_20,mod4_20,mod5_20),single.row = FALSE
           caption="Table 3: Comparisons of GEE Regressions(N=20 individuals)", caption.above=TRUE)
 htmltools::HTML(Table3)
 ```
+
+
+## 4) geepack:geeglm vs gee::gee
+```{r}
+geepack1<- geeglm(y1 ~ trt + sqrtmonth + trt:sqrtmonth, data = arthritis_50,
+              family = "binomial", id=id, waves = time,
+              corstr = "unstructured", scale.fix = TRUE)
+
+summary(geepack1)
+
+```
+
+```{r}
+#library(gee)
+gee1 <- gee(y1 ~ trt + sqrtmonth + trt:sqrtmonth, data = arthritis_50,
+              family = "binomial", id=id, 
+              corstr = "unstructured", scale.fix = TRUE)
+summary(gee1)
+```
+
 
 ## Matching
 Packages: optmatch, cobalt
