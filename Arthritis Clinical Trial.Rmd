@@ -52,12 +52,8 @@ arthritis_long$sqrtmonth <- arthritis_long$month^0.5
 
 ### Ordinal responses
 ```{r,include=FALSE}
-#library(geepack)
 summary(ordgee(ordered(y) ~ trt + sqrtmonth + trt:sqrtmonth, id = id, 
                 waves=time, corstr=("independence"), data = arthritis_long))
-
-# summary(ordgee(ordered(y) ~ trt + sqrtmonth + trt:sqrtmonth, id = id, 
-#                waves=time, corstr=("exchangeable"), data = arthritis_long))
 ```
 
 ## 2)Dichotomous response variable
@@ -90,7 +86,6 @@ gee.in <- geeglm(y1 ~ trt + sqrtmonth + trt:sqrtmonth, data = arthritis_long,
 1) Extract details from glm() models for table construction using screenreg() from *texreg* package. 
 ```{r}
 # library(texreg)
-
 extract.glm <- function(model, include.aic = FALSE, include.bic = FALSE,
                         include.loglik = FALSE, include.deviance = FALSE,
                         include.nobs = TRUE, ...) {
@@ -162,6 +157,7 @@ extract.geeglm <- function(model,
                            include.correlation = FALSE,
                            include.nobs = TRUE,
                            include.qic = TRUE,
+                           include.qicu=TRUE,
                            ...) {
   s <- summary(model)
   names <- rownames(s$coef)
@@ -194,6 +190,11 @@ extract.geeglm <- function(model,
   if (include.qic == TRUE){       #add QIC into extract.geeglm
     gof = c(gof, QIC(model)[1])
     gof.names = c(gof.names, "QIC")
+    gof.decimal = c(gof.decimal, TRUE)
+  }
+  if (include.qicu == TRUE){       #add QICu into extract.geeglm
+    gof = c(gof, QIC(model)[2])
+    gof.names = c(gof.names, "QICu")
     gof.decimal = c(gof.decimal, TRUE)
   }
   tr <- createTexreg(
@@ -243,7 +244,7 @@ Table1<-htmlreg(list(mod1,mod2,mod3,mod4,mod5),single.row = FALSE,
           custom.header = list("GLM"=1,"GEE"=2:5),
           custom.model.names = c(" ","Independence","Exchangeable",
                                  "AR(1)","Unstructured"),
-          caption="Table 1: Comparisons of GEE Regressions(N=303 individuals)", caption.above=TRUE)
+          caption="Table 1: Comparison of GLM and GEE Models with Different Correlation Structures(N=303 individuals)", caption.above=TRUE)
 htmltools::HTML(Table1)
 ```
 
@@ -274,7 +275,7 @@ Table2<-htmlreg(list(mod1_50,mod2_50,mod3_50,mod4_50,mod5_50),single.row = FALSE
           custom.header = list("GLM"=1,"GEE"=2:5),
           custom.model.names = c(" ","Independence","Exchangeable",
                                  "AR(1)","Unstructured"),
-          caption="Table 2: Comparisons of GEE Regressions(N=50 individuals)", caption.above=TRUE)
+          caption="Table 2: Comparison of GLM and GEE Models with Different Correlation Structures(N=50 individuals)", caption.above=TRUE)
 htmltools::HTML(Table2)
 ```
 
@@ -300,12 +301,13 @@ mod4_20 <- geeglm(y1 ~ trt + sqrtmonth + trt:sqrtmonth, data = arthritis_20,
 mod5_20 <- geeglm(y1 ~ trt + sqrtmonth + trt:sqrtmonth, data = arthritis_20,
               family = "binomial", id=id, waves = time, 
               corstr = "unstructured", scale.fix = TRUE)
+summary(mod5_20)
 
 Table3<-htmlreg(list(mod1_20,mod2_20,mod3_20,mod4_20,mod5_20),single.row = FALSE,
           custom.header = list("GLM"=1,"GEE"=2:5),
           custom.model.names = c(" ","Independence","Exchangeable",
                                  "AR(1)","Unstructured"),
-          caption="Table 3: Comparisons of GEE Regressions(N=20 individuals)", caption.above=TRUE)
+          caption="Table 3: Comparison of GLM and GEE Models with Different Correlation Structures(N=20 individuals)", caption.above=TRUE)
 htmltools::HTML(Table3)
 ```
 
@@ -391,5 +393,53 @@ covs0 <- subset(arthritis, select = c(age))
 p.score <- ps$fitted.values #get the propensity score
 
 bal.tab(ps.pm, covs = covs0, distance = ~p.score)
+```
+# Dec13
+
+### Summary of comparison tables
+N=303:
+* GLM and GEE model with independent correlation structure have the same parameter estimates, the estimated standard errors are a bit different since GEE uses robust sandwich estimator.
+* Exchangeable GEE also have similar parameter estimates with independent.GEE is asymptotically equivalent and provides consistent estimates even though we have different working correlation structures. Standard errors are similar.
+* AR(1) is a little bit different, but it has the largest QIC. We expect AR(1) to be more similar, but maybe the sample size is still not big enough to show the asymptotic equivalence. 
+* Standard errors are similar between all the models.
+
+N=50:
+* Similar between independent & exchangeable, but more difference in AR(1) and unstructured.
+
+N=20:
+* For interaction, we see Greater difference in standard error estimates between independent and logistic regression(GLM).
+* Greater difference among all the standard error estimates between different working correlation structures.
+
+Overall:
+* Standard error estimates are greater when the sample size is smaller because standard error is a function of sample size. 
+* QIC is the largest when sample size is the largest. Independent correlation structure has the lowest QIC across different sample size situations.
+* During the *simulation*, we'll vary the strength of correlation between outcomes to see if the true correlation structure AR(1). If the correlation is very strong, then we should see assuming the AR(1) will have the lowest QIC.
+
+### QIC vs QICu
+The QIC is used to compare the relative goodness-of-fit of different GEE models by calculating a penalized likelihood function. The QICu variant is an extension of the QIC that takes into account the number of parameters being estimated by each model, which can help to balance the comparison and provide more accurate results.
+
+For example, AR(1) estimates a parameter that the other model (independence) does not, using QICu may provide a more balanced comparison than using QIC alone. This is because QICu takes into account the difference in the number of parameters being estimated by each model, whereas QIC does not. Therefore, it is possible that QICu may provide a better comparison in this situation than QIC.
+
+QICu approximates QIC when the GEE model is correctly specified. QICu, defined as Q+2p, adds a penalty (2p) to the quasilikelihood (Q), where p is the number of parameters in the model. Models do not need to be nested in order to use QIC or QICu to compare them. Note that QICu should not be used for selecting a working correlation structure.
+
+### Plot
+
+```{r}
+library(ggplot2)
+summary_data <- arthritis_long %>% drop_na() %>%
+  group_by(month, trt) %>%
+  summarise(proportion = sum(y1) / n()) 
+
+summary_data$trt <- as.factor(summary_data$trt)
+
+ggplot(summary_data, aes(x = month, y = proportion, color = trt)) +
+  geom_point()+
+  geom_line()+
+  labs(x="Month",y="Proportion of favorable response", 
+       title="Figure 1: Auranofin and Placebo Effect on Proportion of Patients \n Reporting Good Arthritis Symptoms over Time",
+       color="Treatment:")+
+  scale_color_manual(labels = c("placebo","auranofin"),
+                     values = c("#66CCCC","#FF99FF"))+
+  theme_minimal()
 ```
 

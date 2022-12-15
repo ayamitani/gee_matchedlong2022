@@ -32,7 +32,7 @@ e) review Generalized linear model
 * Start date: December 5, 2022
 * Orientation: Tuesday, December 13, 2022
 
-### Questions
+### Q&A
 1. Why GEE with independent working correlation is used for unbiased estimation when the follow-up data is *truncated by death*?
 - censoring: assume independent, missing not at random
 - GEE: assume missing completely at random. 
@@ -71,7 +71,7 @@ $Cov(\hat{\beta}) = B^{-1}MB^{-1}$
   + UHN email address: Peiyu.Li@uhn.ca
   + Pick up computer on December 8
   
-### Questions
+### Q&A
 1. In the case study Arthritis Clinical Trial in Chapter 13:
   a) Why the model used square-root transformation for time(month)?
     + month(0,2,4,6) --> (0,1.4,2,2,45), after square-root transformation, the difference is getting smaller as time increases. Instead of assuming linear effect, we assume the difference on treatment effect is largest for the first visit, and smallest for the last visit.
@@ -109,16 +109,22 @@ $Cov(\hat{\beta}) = B^{-1}MB^{-1}$
 * UHN orientation
 * Made comparison tables for different GEE regressions using four correlation structures and different sample sizes.
 
-### Questions
+### Q&A
 
 1. If the numbers of repeated measurements are not the same (e.g. contain missing values), how can we specify "waves" parameter in geeglm()? Should I specify "waves" parameter as a list of numbers of observations for each subject?
+* The missing values should not affect the results when we specified "waves=time". * GEE assumes data are missing completely at random.
 
-2. a) When should we set scale.fix to be false and allow the scale to be estimated from the data? 
- b) Does scale.fix=FALSE provide more efficient and accurate estimates of the regression coefficients? 
- c) Why the scale parameter becomes 1.01 instead of 1 when only included 20 subjects?
+2. 
+a) When should we set scale.fix to be false and allow the scale to be estimated from the data? 
+ + In GLM, there is a *location* parameter and *scale* parameter. For logistic regression, location parameter is $\mu = P(Y=1)$ and scale is 1 because $Var=\mu(1-\mu)$ only relies on the location parameter. 
+ + If we have a continuous outcome assume a Normal distribution, location parameter is mean $\mu$, the scale parameter equals $Var=\sigma^2$. In this case, we won't fix the scale parameter and we need to estimate it from the data.
+ + So it depends on which distribution we're assuming.
+
+b) Why the scale parameter becomes 1.01 instead of 1 when only included 20 subjects?
   + When using the geeglm() function in R with a small sample size and scale.fix=TRUE, the estimated scale parameter may not be exactly equal to 1. 
 
 3. I used geepack::geeglm function for the comparison, and we can directly use QIC function. However, gee:gee function can provide both naive standard errors and robust standard error, and we can also get estimated correlation structure matrix in the summary output for gee() function. 
+* The estimates are a little bit different. gee() uses moment based approach, geeglm() constructs another estimating equation for the $\alpha 's$ and iterate between two estimating equations.
 
 4. How to interpret the results based on the comparisons?
 * The effect of 'sqrtmonth' became insignificant when the sample size decreased
@@ -126,22 +132,27 @@ $Cov(\hat{\beta}) = B^{-1}MB^{-1}$
 * QIC for different correlation structured were almost the same for a given sample size, but QIC decreased as the sample size decreased.
 
 5. For propensity score matching, do we need to consider caliper distance when performing the matching?
+* Yes.
 
 ## Dec 12 - Dec 16, 2022
 ### Meeting on Dec13
+* Discussed and compared the results from the comparison tables using different working correlation structures and sample sizes (Arthritis clinical trial data).
+* Discussed questions I had when working on the comparison exercise.
+* Other important things we mentioned:
+  + Extracting QICu instead of QIC might be better. AR(1) has to estimate $\rho$ or $\alpha$ parameter but independence doesn't, so there's going to be imbalance between number of parameters that each model is estimating.
+  + bal_tab(): *standardized difference* close to 0 shows balance. 
+  + Don't use p-value to check balance. Some people use P-value to check if the mean age between treated and untreated group are not different. That's not what we're trying to investigate. P-value is the probability that you observed a difference given there's a true difference. We don't what to assume that there is a true difference.
+  + How different we want they to be depends on clinical questions. We want to create a sample that mimics a randomized clinical trial. Even if we randomized patients perfectly, we might see some different in baseline characteristics between treated and untreated groups. 
+  + AR(1) correlation is $\rho^{|t_i-t_j|}$, so it decreases as the time lag increases.
+  + the *linear interaction* is not significant, if the interation is not linear
+* Next steps:
+  + follow up with Steve and Sudip, and practice using R in docker.
+  + plot the longitudinal data: for binary outcome, we can plot the proportion of the outcome at each time point for each treatment (one curve for each treatment). If the outcome increase or decrease in a linear matter, then we can just include the linear time variable.
+  
 
+### Accomplishment
 
-
-
-
-
-
-
-
-
-
-
-
+### Questions
 
 
 
