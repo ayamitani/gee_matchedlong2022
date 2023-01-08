@@ -397,26 +397,26 @@ bal.tab(ps.pm, covs = covs0, distance = ~p.score)
 # Dec13
 
 ### Summary of comparison tables
-N=303:
-* GLM and GEE model with independent correlation structure have the same parameter estimates, the estimated standard errors are a bit different since GEE uses robust sandwich estimator.
-* Exchangeable GEE also have similar parameter estimates with independent.GEE is asymptotically equivalent and provides consistent estimates even though we have different working correlation structures. Standard errors are similar.
-* AR(1) is a little bit different, but it has the largest QIC. We expect AR(1) to be more similar, but maybe the sample size is still not big enough to show the asymptotic equivalence. 
+N=303:   
+* GLM and GEE model with independent correlation structure have the same parameter estimates, the estimated standard errors are a bit different since GEE uses robust sandwich estimator.   
+* Exchangeable GEE also have similar parameter estimates with independent.GEE is asymptotically equivalent and provides consistent estimates even though we have different working correlation structures. Standard errors are similar.   
+* AR(1) is a little bit different, but it has the largest QIC. We expect AR(1) to be more similar, but maybe the sample size is still not big enough to show the asymptotic equivalence.    
 * Standard errors are similar between all the models.
 
-N=50:
+N=50:    
 * Similar between independent & exchangeable, but more difference in AR(1) and unstructured.
 
-N=20:
-* For interaction, we see Greater difference in standard error estimates between independent and logistic regression(GLM).
+N=20:   
+* For interaction, we see Greater difference in standard error estimates between independent and logistic regression(GLM).    
 * Greater difference among all the standard error estimates between different working correlation structures.
-
-Overall:
-* Standard error estimates are greater when the sample size is smaller because standard error is a function of sample size. 
-* QIC is the largest when sample size is the largest. Independent correlation structure has the lowest QIC across different sample size situations.
+   
+Overall:    
+* Standard error estimates are greater when the sample size is smaller because standard error is a function of sample size.    
+* QIC is the largest when sample size is the largest. Independent correlation structure has the lowest QIC across different sample size situations.    
 * During the *simulation*, we'll vary the strength of correlation between outcomes to see if the true correlation structure AR(1). If the correlation is very strong, then we should see assuming the AR(1) will have the lowest QIC.
 
 ### QIC vs QICu
-The QIC is used to compare the relative goodness-of-fit of different GEE models by calculating a penalized likelihood function. The QICu variant is an extension of the QIC that takes into account the number of parameters being estimated by each model, which can help to balance the comparison and provide more accurate results.
+The QIC is used to compare the relative goodness-of-fit of different GEE models by calculating a penalized likelihood function. The QICu variant is an extension of the QIC that takes into account the *number of parameters* being estimated by each model, which can help to balance the comparison and provide more accurate results.
 
 For example, AR(1) estimates a parameter that the other model (independence) does not, using QICu may provide a more balanced comparison than using QIC alone. This is because QICu takes into account the difference in the number of parameters being estimated by each model, whereas QIC does not. Therefore, it is possible that QICu may provide a better comparison in this situation than QIC.
 
