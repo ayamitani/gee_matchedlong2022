@@ -355,10 +355,10 @@ display: none;
 </div>
 
 
-<div id="nov-14-18-2022" class="section level2">
-<h2>Nov 14-18, 2022</h2>
-<div id="meeting-on-nov-15" class="section level3">
-<h3>Meeting on Nov 15</h3>
+<div id="nov-14-18-2022" class="section level1">
+<h1>Nov 14-18, 2022</h1>
+<div id="meeting-on-nov-15" class="section level2">
+<h2>Meeting on Nov 15</h2>
 <ul>
 <li>GitHub setup, cloned repository</li>
 <li>Discussed about project background and details</li>
@@ -378,8 +378,8 @@ subject-specific.</li>
 </ul></li>
 </ul>
 </div>
-<div id="accomplishment" class="section level3">
-<h3>Accomplishment</h3>
+<div id="accomplishment" class="section level2">
+<h2>Accomplishment</h2>
 <ol style="list-style-type: decimal">
 <li>Literature Review</li>
 </ol>
@@ -410,8 +410,8 @@ study permit)</li>
 <li>Orientation: Tuesday, December 13, 2022</li>
 </ul>
 </div>
-<div id="questions" class="section level3">
-<h3>Questions</h3>
+<div id="qa" class="section level2">
+<h2>Q&amp;A</h2>
 <ol style="list-style-type: decimal">
 <li>Why GEE with independent working correlation is used for unbiased
 estimation when the follow-up data is <em>truncated by death</em>?</li>
@@ -450,10 +450,10 @@ we are sure the correlation structure is correcly specified)</li>
 </ul>
 </div>
 </div>
-<div id="nov-21-25-2022" class="section level2">
-<h2>Nov 21-25, 2022</h2>
-<div id="meeting-on-nov-22" class="section level3">
-<h3>Meeting on Nov 22</h3>
+<div id="nov-21-25-2022" class="section level1">
+<h1>Nov 21-25, 2022</h1>
+<div id="meeting-on-nov-22" class="section level2">
+<h2>Meeting on Nov 22</h2>
 <ul>
 <li>Discussed questions that I had from last week</li>
 <li>Modified presentation slides</li>
@@ -464,8 +464,8 @@ we are sure the correlation structure is correcly specified)</li>
 </ul></li>
 </ul>
 </div>
-<div id="accomplishment-1" class="section level3">
-<h3>Accomplishment</h3>
+<div id="accomplishment-1" class="section level2">
+<h2>Accomplishment</h2>
 <ul>
 <li><p>Presentation preparation</p></li>
 <li><p>Arthritis Clinical Trial example:</p>
@@ -485,8 +485,8 @@ Regression Model with independent working correlation matrix</li>
 </ul></li>
 </ul>
 </div>
-<div id="questions-1" class="section level3">
-<h3>Questions</h3>
+<div id="qa-1" class="section level2">
+<h2>Q&amp;A</h2>
 <ol style="list-style-type: decimal">
 <li>In the case study Arthritis Clinical Trial in Chapter 13:</li>
 </ol>
@@ -517,10 +517,10 @@ provides estimate of the <em>correlation parameters</em>, and <span class="math 
 </ol>
 </div>
 </div>
-<div id="nov-28---dec-02-2022" class="section level2">
-<h2>Nov 28 - Dec 02, 2022</h2>
-<div id="meeting-on-nov-29" class="section level3">
-<h3>Meeting on Nov 29</h3>
+<div id="nov-28---dec-02-2022" class="section level1">
+<h1>Nov 28 - Dec 02, 2022</h1>
+<div id="meeting-on-nov-29" class="section level2">
+<h2>Meeting on Nov 29</h2>
 <ol style="list-style-type: decimal">
 <li>R function options:</li>
 </ol>
@@ -542,8 +542,8 @@ correlation structure.</li>
 <li>Randomly select 50 and 20 individuals, do the comparison again.</li>
 </ul>
 </div>
-<div id="accomplishment-2" class="section level3">
-<h3>Accomplishment</h3>
+<div id="accomplishment-2" class="section level2">
+<h2>Accomplishment</h2>
 <ul>
 <li>End of term presentation on Dec 1</li>
 <li>Completed Health Services mandatory immunization requirements</li>
@@ -551,13 +551,13 @@ correlation structure.</li>
 </ul>
 </div>
 </div>
-<div id="dec-05---dev-09-2022" class="section level2">
-<h2>Dec 05 - Dev 09, 2022</h2>
-<div id="no-meeting-exam-week" class="section level3">
-<h3>No Meeting (Exam Week)</h3>
+<div id="dec-05---dev-09-2022" class="section level1">
+<h1>Dec 05 - Dev 09, 2022</h1>
+<div id="no-meeting-exam-week" class="section level2">
+<h2>No Meeting (Exam Week)</h2>
 </div>
-<div id="accomplishement" class="section level3">
-<h3>Accomplishement</h3>
+<div id="accomplishement" class="section level2">
+<h2>Accomplishement</h2>
 <ul>
 <li>Picked up computer, met with Kate and Sudip</li>
 <li>UHN orientation</li>
@@ -565,21 +565,36 @@ correlation structure.</li>
 correlation structures and different sample sizes.</li>
 </ul>
 </div>
-<div id="questions-2" class="section level3">
-<h3>Questions</h3>
+<div id="qa-2" class="section level2">
+<h2>Q&amp;A</h2>
 <ol style="list-style-type: decimal">
-<li><p>If the numbers of repeated measurements are not the same
+<li>If the numbers of repeated measurements are not the same
 (e.g. contain missing values), how can we specify “waves” parameter in
 geeglm()? Should I specify “waves” parameter as a list of numbers of
-observations for each subject?</p></li>
-<li><ol style="list-style-type: lower-alpha">
+observations for each subject?</li>
+</ol>
+<ul>
+<li>The missing values should not affect the results when we specified
+“waves=time”. * GEE assumes data are missing completely at random.</li>
+</ul>
+<ol start="2" style="list-style-type: decimal">
+<li></li>
+</ol>
+<ol style="list-style-type: lower-alpha">
 <li>When should we set scale.fix to be false and allow the scale to be
 estimated from the data?</li>
-</ol></li>
 </ol>
+<ul>
+<li>In GLM, there is a <em>location</em> parameter and <em>scale</em>
+parameter. For logistic regression, location parameter is <span class="math inline">\(\mu = P(Y=1)\)</span> and scale is 1 because <span class="math inline">\(Var=\mu(1-\mu)\)</span> only relies on the
+location parameter.</li>
+<li>If we have a continuous outcome assume a Normal distribution,
+location parameter is mean <span class="math inline">\(\mu\)</span>, the
+scale parameter equals <span class="math inline">\(Var=\sigma^2\)</span>. In this case, we won’t fix
+the scale parameter and we need to estimate it from the data.</li>
+<li>So it depends on which distribution we’re assuming.</li>
+</ul>
 <ol start="2" style="list-style-type: lower-alpha">
-<li>Does scale.fix=FALSE provide more efficient and accurate estimates
-of the regression coefficients?</li>
 <li>Why the scale parameter becomes 1.01 instead of 1 when only included
 20 subjects?</li>
 </ol>
@@ -589,12 +604,21 @@ scale.fix=TRUE, the estimated scale parameter may not be exactly equal
 to 1.</li>
 </ul>
 <ol start="3" style="list-style-type: decimal">
-<li><p>I used geepack::geeglm function for the comparison, and we can
+<li>I used geepack::geeglm function for the comparison, and we can
 directly use QIC function. However, gee:gee function can provide both
 naive standard errors and robust standard error, and we can also get
 estimated correlation structure matrix in the summary output for gee()
-function.</p></li>
-<li><p>How to interpret the results based on the comparisons?</p></li>
+function.</li>
+</ol>
+<ul>
+<li>The estimates are a little bit different. gee() uses moment based
+approach, geeglm() constructs another estimating equation for the <span class="math inline">\(\alpha &#39;s\)</span> and iterate between two
+estimating equations.</li>
+<li>–&gt; both use moment-based approach, but with different
+optimization algorithm.</li>
+</ul>
+<ol start="4" style="list-style-type: decimal">
+<li>How to interpret the results based on the comparisons?</li>
 </ol>
 <ul>
 <li>The effect of ‘sqrtmonth’ became insignificant when the sample size
@@ -608,12 +632,122 @@ given sample size, but QIC decreased as the sample size decreased.</li>
 <li>For propensity score matching, do we need to consider caliper
 distance when performing the matching?</li>
 </ol>
+<ul>
+<li>Yes.</li>
+</ul>
 </div>
 </div>
-<div id="dec-12---dec-16-2022" class="section level2">
-<h2>Dec 12 - Dec 16, 2022</h2>
-<div id="meeting-on-dec13" class="section level3">
-<h3>Meeting on Dec13</h3>
+<div id="dec-12-2022---jan-06-2023-winter-break" class="section level1">
+<h1>Dec 12, 2022 - Jan 06, 2023 (winter break)</h1>
+<div id="meeting-on-dec13" class="section level2">
+<h2>Meeting on Dec13</h2>
+<ul>
+<li>Discussed and compared the results from the comparison tables using
+different working correlation structures and sample sizes (Arthritis
+clinical trial data).</li>
+<li>Discussed questions I had when working on the comparison
+exercise.</li>
+<li>Other important things we mentioned:
+<ul>
+<li>Extracting QICu instead of QIC might be better. AR(1) has to
+estimate <span class="math inline">\(\rho\)</span> or <span class="math inline">\(\alpha\)</span> parameter but independence
+doesn’t, so there’s going to be imbalance between number of parameters
+that each model is estimating.</li>
+<li>bal_tab(): <em>standardized difference</em> close to 0 shows
+balance.</li>
+<li>Don’t use p-value to check balance. Some people use P-value to check
+if the mean age between treated and untreated group are not different.
+That’s not what we’re trying to investigate. P-value is the probability
+that you observed a difference given there’s a true difference. We don’t
+what to assume that there is a true difference.</li>
+<li>How different we want they to be depends on clinical questions. We
+want to create a sample that mimics a randomized clinical trial. Even if
+we randomized patients perfectly, we might see some different in
+baseline characteristics between treated and untreated groups.</li>
+<li>AR(1) correlation is <span class="math inline">\(\rho^{|t_i-t_j|}\)</span>, so it decreases as the
+time lag increases.</li>
+<li>the <em>linear interaction</em> is not significant, if the
+interaction is not linear</li>
+</ul></li>
+<li>Next steps:
+<ul>
+<li>follow up with Steve and Sudip, and practice using R in docker.</li>
+<li>plot the longitudinal data: for binary outcome, we can plot the
+proportion of the outcome at each time point for each treatment (one
+curve for each treatment). If the outcome increase or decrease in a
+linear matter, then we can just include the linear time variable.</li>
+<li>Get familiar with QLS</li>
+</ul></li>
+</ul>
+</div>
+<div id="accomplishment-3" class="section level2">
+<h2>Accomplishment</h2>
+<ul>
+<li>Followed up with Sudip:
+<ul>
+<li>A new data set, still waiting for approval</li>
+<li>Issue on R in docker:
+<ul>
+<li>In-person meeting with Sudip on Thursday (Jan 12)</li>
+<li>It’s possible that everyone else using Steve’s WSL-docker set-up is
+doing it on a PC that sits on the network at UHN, and they RDP (remote
+desktop) to it. I, on the other hand, have a laptop at home that is
+connecting via VPN.</li>
+</ul></li>
+</ul></li>
+<li>Plot the arthritis longitudinal data</li>
+<li>Read the papers and learned QLS(2 stages):
+<ul>
+<li>Stage 1: Alternates between updating estimates of the regression
+parameters(via the GEE estimating equation for <span class="math inline">\(\beta\)</span>) and of the correlation
+parameters(<span class="math inline">\(\alpha\)</span>, by minimizing
+generalized error sum of square with respect to <span class="math inline">\(\alpha\)</span>) until convergence.</li>
+<li>Stage 2: Obtain a consistent estimate as the solution for the true
+correlation parameter <span class="math inline">\(\hat \rho\)</span>
+(stage 2 estimates of <span class="math inline">\(\alpha\)</span>) by
+solving the stage 2 estimating equation, assuming the working structure
+is correctly specified.</li>
+<li>The final estimate of <span class="math inline">\(\beta\)</span> is
+obtained by solving the GEE estimating equation evaluated at <span class="math inline">\(\hat \rho\)</span>.</li>
+</ul></li>
+</ul>
+</div>
+<div id="questions" class="section level2">
+<h2>Questions</h2>
+<ol style="list-style-type: decimal">
+<li><p>In our study, are the correlations between matched pairs
+considered “intra-cluster” correlations?</p></li>
+<li><p>GEE vs QLS?</p></li>
+</ol>
+<ul>
+<li>GEE typically implements moment estimates of the correlation
+parameter, while QLS obtains solutions to estimating equations.</li>
+<li>Use the same estimating equation to estimate <span class="math inline">\(\beta\)</span></li>
+<li>QLS is based on GEE, but more easily applied for some complex
+correlation structures</li>
+<li>When the number of cluster is small, GEE(sandwich estimator) tends
+to <em>underestimate SEs</em> (Bie et al., 2020). Does it apply to QLS
+as well?</li>
+<li>QLS estimation is more efficient and superior than GEE estimation.
+(Asar &amp; Karabulut, 2021)</li>
+</ul>
+<ol start="3" style="list-style-type: decimal">
+<li><p>In our study, to simultaneously account for two sources of
+correlation, are we going to use <em>the Kronecker product of two
+correlation matrices</em>? (Shults &amp; Morrow, 2002; Shults et al.,
+2004)</p></li>
+<li><p>The authors compared efficiency of the regression parameter
+estimates to demonstrate the effect of misspecification of the working
+correlation structure, are we also going to calculate and compare the
+efficiency of parameter estimates?</p></li>
+<li><p>Does QIC applicable to QLS?</p></li>
+</ol>
+</div>
+</div>
+<div id="jan-09-13-2023" class="section level1">
+<h1>Jan 09-13, 2023</h1>
+<div id="meeting-on-jan-10" class="section level2">
+<h2>Meeting on Jan 10</h2>
 </div>
 </div>
 

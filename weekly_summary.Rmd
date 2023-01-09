@@ -4,8 +4,8 @@ output: html_document
 date: "2022-11-15"
 ---
 
-## Nov 14-18, 2022
-### Meeting on Nov 15
+# Nov 14-18, 2022
+## Meeting on Nov 15
 * GitHub setup, cloned repository
 * Discussed about project background and details
 * Discussed next steps
@@ -15,7 +15,7 @@ date: "2022-11-15"
   + What's the difference between GEE and GLMM?
     - The interpretation of the parameters is different. The target of inference of GEE is population-average, whereas the GLMM is subject-specific.
     
-### Accomplishment
+## Accomplishment
 1. Literature Review
 a) Propensity Score methods
 b) Generalized Estimating Equations (GEE)
@@ -32,7 +32,7 @@ e) review Generalized linear model
 * Start date: December 5, 2022
 * Orientation: Tuesday, December 13, 2022
 
-### Q&A
+## Q&A
 1. Why GEE with independent working correlation is used for unbiased estimation when the follow-up data is *truncated by death*?
 - censoring: assume independent, missing not at random
 - GEE: assume missing completely at random. 
@@ -49,15 +49,15 @@ $Cov(\hat{\beta}) = B^{-1}MB^{-1}$
 - robust sandwich estimator VS model-based estimator: generally use the robust sandwich estimator, almost never use the other one (unless if we are sure the correlation structure is correcly specified)
 
 
-## Nov 21-25, 2022
-### Meeting on Nov 22
+# Nov 21-25, 2022
+## Meeting on Nov 22
 * Discussed questions that I had from last week
 * Modified presentation slides
 * Discussed next steps:
   + read case studies in Chapter 13
   + use Arthritis Clinical Trial data to perform GEE 
 
-### Accomplishment
+## Accomplishment
 * Presentation preparation
 
 * Arthritis Clinical Trial example:
@@ -71,7 +71,7 @@ $Cov(\hat{\beta}) = B^{-1}MB^{-1}$
   + UHN email address: Peiyu.Li@uhn.ca
   + Pick up computer on December 8
   
-### Q&A
+## Q&A
 1. In the case study Arthritis Clinical Trial in Chapter 13:
   a) Why the model used square-root transformation for time(month)?
     + month(0,2,4,6) --> (0,1.4,2,2,45), after square-root transformation, the difference is getting smaller as time increases. Instead of assuming linear effect, we assume the difference on treatment effect is largest for the first visit, and smallest for the last visit.
@@ -86,8 +86,8 @@ $Cov(\hat{\beta}) = B^{-1}MB^{-1}$
 
   
   
-## Nov 28 - Dec 02, 2022
-### Meeting on Nov 29
+# Nov 28 - Dec 02, 2022
+## Meeting on Nov 29
 1. R function options:
   - waves: Variable specifying the ordering of repeated measurements on the same unit (tells R the dimension of correlation matrix). Also used in connection with missing values. 
   - scale.fix: If true, it's fix at the value of 'scale.value'(by default at 1) rather than estimated. Scale is 1 for logistic regression.
@@ -95,21 +95,21 @@ $Cov(\hat{\beta}) = B^{-1}MB^{-1}$
   - Use arthritis dataset (303 individuals), compare parameter coefficients, standard errors, and QIC for each model using different correlation structure.
   - Randomly select 50 and 20 individuals, do the comparison again.
   
-### Accomplishment
+## Accomplishment
 
 * End of term presentation on Dec 1
 * Completed Health Services mandatory immunization requirements
 * Completed UHN mandatory trainings
 
-## Dec 05 - Dev 09, 2022
-### No Meeting (Exam Week)
-### Accomplishement
+# Dec 05 - Dev 09, 2022
+## No Meeting (Exam Week)
+## Accomplishement
 
 * Picked up computer, met with Kate and Sudip
 * UHN orientation
 * Made comparison tables for different GEE regressions using four correlation structures and different sample sizes.
 
-### Q&A
+## Q&A
 
 1. If the numbers of repeated measurements are not the same (e.g. contain missing values), how can we specify "waves" parameter in geeglm()? Should I specify "waves" parameter as a list of numbers of observations for each subject?
 * The missing values should not affect the results when we specified "waves=time". * GEE assumes data are missing completely at random.
@@ -125,6 +125,7 @@ b) Why the scale parameter becomes 1.01 instead of 1 when only included 20 subje
 
 3. I used geepack::geeglm function for the comparison, and we can directly use QIC function. However, gee:gee function can provide both naive standard errors and robust standard error, and we can also get estimated correlation structure matrix in the summary output for gee() function. 
 * The estimates are a little bit different. gee() uses moment based approach, geeglm() constructs another estimating equation for the $\alpha 's$ and iterate between two estimating equations.
+* --> both use moment-based approach, but with different optimization algorithm.
 
 4. How to interpret the results based on the comparisons?
 * The effect of 'sqrtmonth' became insignificant when the sample size decreased
@@ -134,25 +135,67 @@ b) Why the scale parameter becomes 1.01 instead of 1 when only included 20 subje
 5. For propensity score matching, do we need to consider caliper distance when performing the matching?
 * Yes.
 
-## Dec 12 - Dec 16, 2022
-### Meeting on Dec13
+# Dec 12, 2022 - Jan 06, 2023 (winter break)
+## Meeting on Dec13
 * Discussed and compared the results from the comparison tables using different working correlation structures and sample sizes (Arthritis clinical trial data).
 * Discussed questions I had when working on the comparison exercise.
-* Other important things we mentioned:
+* Other important things we mentioned: 
   + Extracting QICu instead of QIC might be better. AR(1) has to estimate $\rho$ or $\alpha$ parameter but independence doesn't, so there's going to be imbalance between number of parameters that each model is estimating.
   + bal_tab(): *standardized difference* close to 0 shows balance. 
   + Don't use p-value to check balance. Some people use P-value to check if the mean age between treated and untreated group are not different. That's not what we're trying to investigate. P-value is the probability that you observed a difference given there's a true difference. We don't what to assume that there is a true difference.
   + How different we want they to be depends on clinical questions. We want to create a sample that mimics a randomized clinical trial. Even if we randomized patients perfectly, we might see some different in baseline characteristics between treated and untreated groups. 
   + AR(1) correlation is $\rho^{|t_i-t_j|}$, so it decreases as the time lag increases.
-  + the *linear interaction* is not significant, if the interation is not linear
+  + the *linear interaction* is not significant, if the interaction is not linear
 * Next steps:
   + follow up with Steve and Sudip, and practice using R in docker.
   + plot the longitudinal data: for binary outcome, we can plot the proportion of the outcome at each time point for each treatment (one curve for each treatment). If the outcome increase or decrease in a linear matter, then we can just include the linear time variable.
+  + Get familiar with QLS
   
 
-### Accomplishment
+## Accomplishment
+* Followed up with Sudip:
+  + A new data set, still waiting for approval
+  + Issue on R in docker: 
+    - In-person meeting with Sudip on Thursday (Jan 12)
+    -  It's possible that everyone else using Steve’s WSL-docker set-up is doing it on a PC that sits on the network at UHN, and they RDP (remote desktop) to it. I, on the other hand, have a laptop at home that is connecting via VPN.
 
-### Questions
+* Plot the arthritis longitudinal data
+* Read the papers and learned QLS(2 stages):
+  + Stage 1: Alternates between updating estimates of the regression parameters(via the GEE estimating equation for $\beta$) and of the correlation parameters($\alpha$, by minimizing generalized error sum of square with respect to $\alpha$) until convergence.
+  + Stage 2: Obtain a consistent estimate as the solution for the true correlation parameter $\hat \rho$ (stage 2 estimates of $\alpha$) by solving the stage 2 estimating equation, assuming the working structure is correctly specified.
+  + The final estimate of $\beta$ is obtained by solving the GEE estimating equation evaluated at $\hat \rho$.
+  
+  
+## Questions
+1. In our study, are the correlations between matched pairs considered "intra-cluster" correlations?
+
+2. GEE vs QLS?
+  + GEE typically implements moment estimates of the correlation parameter, while QLS obtains solutions to estimating equations.
+  + Use the same estimating equation to estimate $\beta$
+  + QLS is based on GEE, but more easily applied for some complex correlation structures
+  + When the number of cluster is small, GEE(sandwich estimator) tends to *underestimate SEs* (Bie et al., 2020).  Does it apply to QLS as well?
+  + QLS estimation is more efficient and superior than GEE estimation. (Asar & Karabulut, 2021)
+  
+3. In our study, to simultaneously account for two sources of correlation, are we going to use *the Kronecker product of two correlation matrices*? (Shults & Morrow, 2002; Shults et al., 2004)
+  
+4. The authors compared efficiency of the regression parameter estimates to demonstrate the effect of misspecification of the working correlation structure, are we also going to calculate and compare the efficiency of parameter estimates?
+
+5. Does QIC applicable to QLS?
+
+
+# Jan 09-13, 2023
+## Meeting on Jan 10
+
+
+
+
+
+
+
+
+
+
+
 
 
 
