@@ -1,0 +1,108 @@
+---
+title: "Simulation practice"
+author: "Peiyu Li"
+date: "2023-01-15"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Simple Linear Regression
+
+$$Y_i = \beta_0 + \beta_1 x_i + \epsilon_i $$
+$$\epsilon_i \sim N(0, \sigma^2) $$
+Let $X_i$ to be fixed and from Binomial(p=0.5).
+
+1. Specify $\beta_0$, $\beta_1$, and $\sigma^2$. 
+```{r}
+beta0 <- 1
+beta1 <- 2
+sigma <- 1
+
+p <- 0.5
+N <- 200 # sample size
+simnum <- 1000 # repeat 1000 times
+```
+
+2. Generate $X_i$, $\epsilon_i$, and compute $Y_i$.
+```{r}
+estbeta <- vector("list", length = simnum)
+se <- vector("list", length = simnum)
+
+# create two empty list for calculating coverage probability
+L0 <- numeric(simnum)
+L1 <- numeric(simnum)
+
+for (s in 1:simnum) {
+  # generate predictor
+  x <- rbinom(n = N, size = 1, prob = p)
+  
+  # generate error
+  e <- rnorm(n = N, mean = 0, sd = sigma)
+  
+  # generate outcome
+  y <- beta0 + beta1 * x + e
+  
+  simdat <- as.data.frame(cbind(y, x))
+  
+  outlm <- lm(y ~ x, data = simdat)
+  estbeta[[s]] <- coef(outlm) # parameter estimates
+  se[[s]] <- summary(outlm)$coefficient[,2] # standard errors
+  
+  CI0 <- confint(outlm)[1,] # confidence interval for beta0
+  CI1 <- confint(outlm)[2,] # confidence interval for beta1
+  # check if the true beta is in the CIs
+  ifelse(beta0 >= CI0[1] & beta0 <= CI0[2], L0[s] <- 1, L0[s] <- 0)
+  ifelse(beta1 >= CI1[1] & beta1 <= CI1[2], L1[s] <- 1, L1[s] <- 0)
+}
+```
+
+3. Calculate mean relative bias
+```{r}
+outbeta <- do.call("rbind", estbeta)
+beta_mean <- colMeans(outbeta) # calculate the mean estimate of beta0 and beta1
+
+beta <- matrix(c(beta0,beta1), nrow =1,ncol=2)
+kable((beta_mean - beta) / beta, 
+       caption = "Mean Relative Bias", col.names = c(("$\\beta_0$"), "$\\beta_1$"))
+
+```
+ 
+4. Calculate mean SE
+```{r}
+outse <- do.call("rbind",se)
+se_mean <- colMeans(outse)
+kable(t(se_mean), caption = "Mean SE", col.names = c(("$\\beta_0$"), "$\\beta_1$"))
+```
+
+5. Calculate SD(empirical SE)
+```{r}
+diff_sq<- vector("list", length = simnum)
+for (i in 1:simnum) {
+  diff_sq[[i]] <- (outbeta[i,] - beta_mean)^2
+}
+sd <- sqrt(colSums(do.call("rbind", diff_sq)) / (simnum - 1))
+kable(t(sd), caption = "SD (empirical SE)", col.names = c(("$\\beta_0$"), "$\\beta_1$"))
+```
+
+
+6. Calculate coverage probability for $\beta_0$ and $\beta_1$
+```{r}
+(coverage_prob0 <- mean(L0))
+(coverage_prob1 <- mean(L1))
+```
+
+
+
+7. Calculate MSE
+```{r}
+diff <- vector("list", length = simnum)
+for (i in 1:simnum) {
+  diff[[i]] <- (beta - outbeta[i,])^2
+}
+mse <- colSums(do.call("rbind", diff)) / simnum
+kable(t(mse), caption = "MSE", col.names = c(("$\\beta_0$"), "$\\beta_1$"))
+```
+
