@@ -659,7 +659,7 @@ balance.</li>
 if the mean age between treated and untreated group are not different.
 That’s not what we’re trying to investigate. P-value is the probability
 that you observed a difference given there’s a true difference. We don’t
-what to assume that there is a true difference.</li>
+want to assume that there is a true difference.</li>
 <li>How different we want they to be depends on clinical questions. We
 want to create a sample that mimics a randomized clinical trial. Even if
 we randomized patients perfectly, we might see some different in
@@ -712,11 +712,12 @@ obtained by solving the GEE estimating equation evaluated at <span class="math i
 </ul></li>
 </ul>
 </div>
-<div id="questions" class="section level2">
-<h2>Questions</h2>
+<div id="qa-3" class="section level2">
+<h2>Q&amp;A</h2>
 <ol style="list-style-type: decimal">
 <li><p>In our study, are the correlations between matched pairs
-considered “intra-cluster” correlations?</p></li>
+considered “intra-cluster” correlations? –&gt; Yes, each pair forms a
+cluster, and each individual is also a cluster.</p></li>
 <li><p>GEE vs QLS?</p></li>
 </ol>
 <ul>
@@ -727,7 +728,7 @@ parameter, while QLS obtains solutions to estimating equations.</li>
 correlation structures</li>
 <li>When the number of cluster is small, GEE(sandwich estimator) tends
 to <em>underestimate SEs</em> (Bie et al., 2020). Does it apply to QLS
-as well?</li>
+as well? –&gt; Yes</li>
 <li>QLS estimation is more efficient and superior than GEE estimation.
 (Asar &amp; Karabulut, 2021)</li>
 </ul>
@@ -735,11 +736,12 @@ as well?</li>
 <li><p>In our study, to simultaneously account for two sources of
 correlation, are we going to use <em>the Kronecker product of two
 correlation matrices</em>? (Shults &amp; Morrow, 2002; Shults et al.,
-2004)</p></li>
+2004) –&gt; Yes. See Mitani et al. (2019).</p></li>
 <li><p>The authors compared efficiency of the regression parameter
 estimates to demonstrate the effect of misspecification of the working
 correlation structure, are we also going to calculate and compare the
-efficiency of parameter estimates?</p></li>
+efficiency of parameter estimates? –&gt; Yes, we’ll calculate both bias
+and efficiency.</p></li>
 <li><p>Does QIC applicable to QLS?</p></li>
 </ol>
 </div>
@@ -748,6 +750,298 @@ efficiency of parameter estimates?</p></li>
 <h1>Jan 09-13, 2023</h1>
 <div id="meeting-on-jan-10" class="section level2">
 <h2>Meeting on Jan 10</h2>
+<ul>
+<li>Arthritis clinical trial data: Based on the plot, consider quadratic
+effect on time. Model: trt + month + month^2 + trt: month +
+trt:month^2</li>
+<li>Extended GEE methods:
+<ul>
+<li>GEE1(gee::gee): <span class="math inline">\(\beta\)</span> is
+estimated using GEE estimating equation, <span class="math inline">\(\alpha\)</span> is estimated using <em>moment
+based approach</em>.</li>
+<li>GEE1.5: <span class="math inline">\(\beta\)</span> &amp; <span class="math inline">\(\alpha\)</span> estimated by estimating equations,
+iterate between the two</li>
+<li>GEE2(geepack::geeglm): estimated by joint estimating equation, solve
+matrix <span class="math inline">\(\eta = (\beta, \alpha)\)</span></li>
+</ul></li>
+<li>The R package “qlspack” is no longer available, and we need to write
+our own code.</li>
+<li>“Quasi-Least Squares Regression” by Justine Shults</li>
+<li>Next time, we’ll solve generalized sum of squares together.</li>
+</ul>
+</div>
+<div id="accomplishment-4" class="section level2">
+<h2>Accomplishment</h2>
+<ol style="list-style-type: decimal">
+<li>Simulation practice</li>
+</ol>
+<ul>
+<li>run a simulation for simple linear regression, with two parameters
+<span class="math inline">\(\beta_0\)</span> and <span class="math inline">\(\beta_1\)</span>, where the predictor follows
+Bin(N,p) and random error follows N(0,1).</li>
+<li>Calculate mean relative bias, mean SE, SD(empirical SE), coverage
+probability, and MSE for <span class="math inline">\(\beta_0\)</span>
+and <span class="math inline">\(\beta_1\)</span>.</li>
+<li>see “Simulation Practice.Rmd”</li>
+</ul>
+<ol start="2" style="list-style-type: decimal">
+<li>Practicum data</li>
+</ol>
+<ul>
+<li><p>Steve provided partial data dictionary, and I also confirmed the
+definition of some other variables with him.</p></li>
+<li><p>Dataset 1 (“work_pt_d”)</p>
+<ul>
+<li>contains the baseline (i.e. patient-level) information of 406
+patients (variables that are included here could be utilized for
+matching)</li>
+</ul></li>
+</ul>
+<table>
+<colgroup>
+<col width="11%" />
+<col width="88%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">Variable</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">ptid</td>
+<td align="left">Patient ID</td>
+</tr>
+<tr class="even">
+<td align="left">age</td>
+<td align="left">Patient’s age</td>
+</tr>
+<tr class="odd">
+<td align="left">sex</td>
+<td align="left">Patient’s sex, 1_male vs 2_female</td>
+</tr>
+<tr class="even">
+<td align="left">bav</td>
+<td align="left">Bicuspid aortic valve (BAV) vs Tricuspid aortic vlave
+(TAV)</td>
+</tr>
+<tr class="odd">
+<td align="left">nc_sinus</td>
+<td align="left">Replacement of the non-coronary sinus of the aortic
+root (1_Yes vs 2_No)</td>
+</tr>
+<tr class="even">
+<td align="left">raa_type</td>
+<td align="left">Type of ascending aorta replacement: (1_clamp vs
+2_hemiarch)</td>
+</tr>
+<tr class="odd">
+<td align="left">bsa</td>
+<td align="left">Body Surface Area</td>
+</tr>
+<tr class="even">
+<td align="left">diabetes</td>
+<td align="left">0_Negative vs 1_Diabetes</td>
+</tr>
+<tr class="odd">
+<td align="left">hyper</td>
+<td align="left">0_Negative vs 1_Hypertension</td>
+</tr>
+<tr class="even">
+<td align="left">chlstrl</td>
+<td align="left">0_Negative vs 1_hyperlipidemia</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Dataset 2 (“raw_long_d”)
+<ul>
+<li>contains the corresponding longitudinal measurements of these
+patients (298 patients)</li>
+</ul></li>
+</ul>
+<table>
+<colgroup>
+<col width="13%" />
+<col width="86%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">Variable</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">ptid</td>
+<td align="left">Patient ID</td>
+</tr>
+<tr class="even">
+<td align="left">age</td>
+<td align="left">Patient’s age</td>
+</tr>
+<tr class="odd">
+<td align="left">sex</td>
+<td align="left">Patient’s sex, 1_male vs 2_female</td>
+</tr>
+<tr class="even">
+<td align="left">bav_confirmed</td>
+<td align="left">BAV vs TAV</td>
+</tr>
+<tr class="odd">
+<td align="left">nc_sinus</td>
+<td align="left">Replacement of the non-coronary sinus of the aortic
+root (1_Yes vs 2_No)</td>
+</tr>
+<tr class="even">
+<td align="left">raa_type</td>
+<td align="left">Type of ascending aorta replacement: (1_clamp vs
+2_hemiarch)</td>
+</tr>
+<tr class="odd">
+<td align="left">died</td>
+<td align="left">Patient died, 0 = No, 1 = Yes</td>
+</tr>
+<tr class="even">
+<td align="left">lka_d</td>
+<td align="left">Date of last known alive</td>
+</tr>
+<tr class="odd">
+<td align="left">yr2death</td>
+<td align="left">Year until death</td>
+</tr>
+<tr class="even">
+<td align="left">ao_reop</td>
+<td align="left">Repeat aortic surgery (0, 1, 2)</td>
+</tr>
+<tr class="odd">
+<td align="left">yr2ao_reop</td>
+<td align="left">Year until re-operation</td>
+</tr>
+<tr class="even">
+<td align="left">bsa_baseline</td>
+<td align="left">Body surface area at the baseline</td>
+</tr>
+<tr class="odd">
+<td align="left">dateor</td>
+<td align="left">Date of operation</td>
+</tr>
+<tr class="even">
+<td align="left">bsa_echo</td>
+<td align="left">body surface area measured at echo dates post baseline
+(i.e. follow up BSA measures)</td>
+</tr>
+<tr class="odd">
+<td align="left">mdate</td>
+<td align="left">Measurement date</td>
+</tr>
+<tr class="even">
+<td align="left">root</td>
+<td align="left">Aortic root size</td>
+</tr>
+<tr class="odd">
+<td align="left">aa</td>
+<td align="left">Ascending aorta size</td>
+</tr>
+<tr class="even">
+<td align="left">arch</td>
+<td align="left">Aortic arch size</td>
+</tr>
+<tr class="odd">
+<td align="left">src_root</td>
+<td align="left">1 = ECHO, 2 = CT, 3 = MRI</td>
+</tr>
+<tr class="even">
+<td align="left">src_aa</td>
+<td align="left">1 = ECHO, 2 = CT, 3 = MRI</td>
+</tr>
+<tr class="odd">
+<td align="left">src_arch</td>
+<td align="left">1 = ECHO, 2 = CT, 3 = MRI</td>
+</tr>
+<tr class="even">
+<td align="left">day2vst</td>
+<td align="left">Number of days from “dateor” to “mdate”</td>
+</tr>
+<tr class="odd">
+<td align="left">yr2vst</td>
+<td align="left">Number of years from “dateor” to “mdate”</td>
+</tr>
+<tr class="even">
+<td align="left">date_base</td>
+<td align="left">Date of the first measurement</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Note: for “day2vst” and “yr2vst”, 0 means measured on the day of
+operation, negatice values indicate meaured before date of
+operation.<br />
+</li>
+<li>Outcome variables: root, ascending aorta, and arch dimension (focus
+on root dimension first).
+<ul>
+<li>we can exclude the missing values.</li>
+</ul></li>
+<li>Cohort variable: bicuspid aortic valve (BAV) vs Tricuspid aortic
+valve (TAV).</li>
+</ul>
+</div>
+<div id="questions" class="section level2">
+<h2>Questions</h2>
+<ol style="list-style-type: decimal">
+<li><p>For the variable “day2vst”/“yr2vst”, should we exclude
+observations that have negative values on this variable? (i.e. should we
+only include measurements that took place after operation?)</p></li>
+<li><p>Some patients had repeated aortic surgery. We need to compare the
+measurement date(“mdate”) and re-operation date, then exclude
+observations that measured the outcomes after re-operation.</p></li>
+</ol>
+<ul>
+<li>check “yr2ao_reop” vs “yr2vst” (i.e. for those who did re-operation,
+year until measurement should be less than year until re-operation)
+?</li>
+</ul>
+<ol start="3" style="list-style-type: decimal">
+<li>Steve mentioned that we should pay attention to the follow-up time.
+For each patient, if one of the measurement took place far away from
+other repeated measurement, then we may need to exclude this
+observation.</li>
+</ol>
+<ul>
+<li>How to visualize this?</li>
+<li>we can calculate the time difference between measurements, but how
+to decide the standard of excluding observations due to large time
+difference?</li>
+</ul>
+<ol start="4" style="list-style-type: decimal">
+<li>Imaging data were collected from all available
+<em>echocardiography</em>, <em>CT</em>, and <em>Magnetic resonance
+imaging(MRI)</em> reports at baseline and during follow-up.</li>
+</ol>
+<ul>
+<li>Sudip said these may not be relevant for our project, so we can
+ignore those variables for now.</li>
+<li>However, Steve wanted me to discuss with you about the selection
+bias (which will translate into the bias within parameters). In reality,
+we cannot quantify selection bias. During the simulation (matching), we
+can simulate 2 datasets (one was measured using only ECHO, the other one
+was measured from 3 different sources). Then we can add some bias to the
+parameter to simulate the bias.</li>
+<li>The question is: To what extend the bias should be introduced so
+that the result from the former dataset will approach the later one. If
+there’s only a little bit study based bias, but translate to huge
+parameter bias, then that’s the concern. But if we induce large
+selection bias in the study, and only observe relatively small parameter
+related bias, then he’ll be more comfortable to use that.</li>
+</ul>
+</div>
+</div>
+<div id="jan-16-20-2023" class="section level1">
+<h1>Jan 16-20, 2023</h1>
+<div id="meeting-on-jan-17" class="section level2">
+<h2>Meeting on Jan 17</h2>
 </div>
 </div>
 

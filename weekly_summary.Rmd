@@ -142,7 +142,7 @@ b) Why the scale parameter becomes 1.01 instead of 1 when only included 20 subje
 * Other important things we mentioned: 
   + Extracting QICu instead of QIC might be better. AR(1) has to estimate $\rho$ or $\alpha$ parameter but independence doesn't, so there's going to be imbalance between number of parameters that each model is estimating.
   + bal_tab(): *standardized difference* close to 0 shows balance. 
-  + Don't use p-value to check balance. Some people use P-value to check if the mean age between treated and untreated group are not different. That's not what we're trying to investigate. P-value is the probability that you observed a difference given there's a true difference. We don't what to assume that there is a true difference.
+  + Don't use p-value to check balance. Some people use P-value to check if the mean age between treated and untreated group are not different. That's not what we're trying to investigate. P-value is the probability that you observed a difference given there's a true difference. We don't want to assume that there is a true difference.
   + How different we want they to be depends on clinical questions. We want to create a sample that mimics a randomized clinical trial. Even if we randomized patients perfectly, we might see some different in baseline characteristics between treated and untreated groups. 
   + AR(1) correlation is $\rho^{|t_i-t_j|}$, so it decreases as the time lag increases.
   + the *linear interaction* is not significant, if the interaction is not linear
@@ -166,30 +166,116 @@ b) Why the scale parameter becomes 1.01 instead of 1 when only included 20 subje
   + The final estimate of $\beta$ is obtained by solving the GEE estimating equation evaluated at $\hat \rho$.
   
   
-## Questions
+## Q&A
 1. In our study, are the correlations between matched pairs considered "intra-cluster" correlations?
+--> Yes, each pair forms a cluster, and each individual is also a cluster.
 
 2. GEE vs QLS?
   + GEE typically implements moment estimates of the correlation parameter, while QLS obtains solutions to estimating equations.
   + Use the same estimating equation to estimate $\beta$
   + QLS is based on GEE, but more easily applied for some complex correlation structures
-  + When the number of cluster is small, GEE(sandwich estimator) tends to *underestimate SEs* (Bie et al., 2020).  Does it apply to QLS as well?
+  + When the number of cluster is small, GEE(sandwich estimator) tends to *underestimate SEs* (Bie et al., 2020).  Does it apply to QLS as well? --> Yes
   + QLS estimation is more efficient and superior than GEE estimation. (Asar & Karabulut, 2021)
   
 3. In our study, to simultaneously account for two sources of correlation, are we going to use *the Kronecker product of two correlation matrices*? (Shults & Morrow, 2002; Shults et al., 2004)
+--> Yes. See Mitani et al. (2019).
   
 4. The authors compared efficiency of the regression parameter estimates to demonstrate the effect of misspecification of the working correlation structure, are we also going to calculate and compare the efficiency of parameter estimates?
+--> Yes, we'll calculate both bias and efficiency.
 
 5. Does QIC applicable to QLS?
 
 
 # Jan 09-13, 2023
-## Meeting on Jan 10
+## Meeting on Jan 10 
+* Arthritis clinical trial data: Based on the plot, consider quadratic effect on time. Model: trt + month + month^2 + trt: month + trt:month^2
+* Extended GEE methods:
+  + GEE1(gee::gee): $\beta$ is estimated using GEE estimating equation, $\alpha$ is estimated using *moment based approach*.
+  + GEE1.5: $\beta$ & $\alpha$ estimated by estimating equations, iterate between the two
+  + GEE2(geepack::geeglm): estimated by joint estimating equation, solve matrix $\eta = (\beta, \alpha)$
+* The R package "qlspack" is no longer available, and we need to write our own code.
+* "Quasi-Least Squares Regression" by Justine Shults
+* Next time, we'll solve generalized sum of squares together. 
+
+## Accomplishment
+1) Simulation practice
+* run a simulation for simple linear regression, with two parameters $\beta_0$ and $\beta_1$, where the predictor follows Bin(N,p) and random error follows N(0,1).
+* Calculate mean relative bias, mean SE, SD(empirical SE), coverage probability, and MSE for $\beta_0$ and $\beta_1$.
+* see "Simulation Practice.Rmd"
+
+2) Practicum data
+- Steve provided partial data dictionary, and I also confirmed the definition of some other variables with him.
+
+* Dataset 1 ("work_pt_d")
+  + contains the baseline (i.e. patient-level) information of 406 patients (variables that are included here could be utilized for matching)  
+  
+|Variable |Description                                                             |
+|:--------|:-----------------------------------------------------------------------|
+|ptid     |Patient ID                                                              |
+|age      |Patient's age                                                           |
+|sex      |Patient's sex, 1_male vs 2_female                                       |
+|bav      |Bicuspid aortic valve (BAV) vs Tricuspid  aortic vlave (TAV)            |
+|nc_sinus |Replacement of the non-coronary sinus of the aortic root (1_Yes vs 2_No)|
+|raa_type |Type of ascending aorta replacement: (1_clamp vs 2_hemiarch)            |
+|bsa      |Body Surface Area                                                       |
+|diabetes |0_Negative vs 1_Diabetes                                                |
+|hyper    |0_Negative vs 1_Hypertension                                            |
+|chlstrl  |0_Negative vs 1_hyperlipidemia                                          |
+
+* Dataset 2 ("raw_long_d")
+  + contains the corresponding longitudinal measurements of these patients (298 patients)
+
+|Variable     |Description                                                                         |
+|:------------|:-----------------------------------------------------------------------------------|
+|ptid         |Patient ID                                                                          |
+|age          |Patient's age                                                                       |
+|sex          |Patient's sex, 1_male vs 2_female                                                   |
+|bav_confirmed|BAV vs TAV                                                                          |
+|nc_sinus     |Replacement of the non-coronary sinus of the aortic root (1_Yes vs 2_No)            |
+|raa_type     |Type of ascending aorta replacement: (1_clamp vs 2_hemiarch)                        |
+|died         |Patient died, 0 = No, 1 = Yes                                                       |
+|lka_d        |Date of last known alive                                                            |
+|yr2death     |Year until death                                                                    |
+|ao_reop      |Repeat aortic surgery (0, 1, 2)                                                     |
+|yr2ao_reop   |Year until re-operation                                                             |
+|bsa_baseline |Body surface area at the baseline                                                   |
+|dateor       |Date of operation                                                                   |
+|bsa_echo     |body surface area measured at echo dates post baseline (i.e. follow up BSA measures)|
+|mdate        |Measurement date                                                                    |
+|root         |Aortic root size                                                                    |
+|aa           |Ascending aorta size                                                                |
+|arch         |Aortic arch size                                                                    |
+|src_root     |1 = ECHO, 2 = CT, 3 = MRI                                                           |
+|src_aa       |1 = ECHO, 2 = CT, 3 = MRI                                                           |
+|src_arch     |1 = ECHO, 2 = CT, 3 = MRI                                                           |
+|day2vst      |Number of days from "dateor" to "mdate"                                             |
+|yr2vst       |Number of years from "dateor" to "mdate"                                            |
+|date_base    |Date of the first measurement                                                       |
+
+* Note: for "day2vst" and "yr2vst", 0 means measured on the day of operation, negatice values indicate meaured before date of operation.  
+* Outcome variables: root, ascending aorta, and arch dimension (focus on root dimension first).    
+  + we can exclude the missing values. 
+* Cohort variable: bicuspid aortic valve (BAV) vs Tricuspid  aortic valve (TAV). 
 
 
+## Questions
+1. For the variable "day2vst"/"yr2vst", should we exclude observations that have negative values on this variable? (i.e. should we only include measurements that took place after operation?)
+
+2. Some patients had repeated aortic surgery. We need to compare the measurement date("mdate") and re-operation date, then exclude observations that measured the outcomes after re-operation.
+  + check "yr2ao_reop" vs "yr2vst" (i.e. for those who did re-operation, year until measurement should be less than year until re-operation) ? 
+
+3. Steve mentioned that we should pay attention to the follow-up time. For each patient, if one of the measurement took place far away from other repeated measurement, then we may need to exclude this observation.
+  + How to visualize this?
+  + we can calculate the time difference between measurements, but how to decide the standard of excluding observations due to large time difference?
+
+4. Imaging data were collected from all available *echocardiography*, *CT*, and *Magnetic resonance imaging(MRI)* reports at baseline and during follow-up.
+  + Sudip said these may not be relevant for our project, so we can ignore those variables for now.
+  + However, Steve wanted me to discuss with you about the selection bias (which will translate into the bias within parameters). In reality, we cannot quantify selection bias. During the simulation (matching), we can simulate 2 datasets (one was measured using only ECHO, the other one was measured from 3 different sources). Then we can add some bias to the parameter to simulate the bias.
+  + The question is: To what extend the bias should be introduced so that the result from the former dataset will approach the later one. If there's only a little bit study based bias, but translate to huge parameter bias, then that's the concern. But if we induce large selection bias in the study, and only observe relatively small parameter related bias, then he'll be more comfortable to use that.
 
 
-
+# Jan 16-20, 2023
+## Meeting on Jan 17
 
 
 
