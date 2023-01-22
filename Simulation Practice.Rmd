@@ -62,12 +62,15 @@ for (s in 1:simnum) {
 3. Calculate mean relative bias
 ```{r}
 outbeta <- do.call("rbind", estbeta)
-beta_mean <- colMeans(outbeta) # calculate the mean estimate of beta0 and beta1
 
-beta <- matrix(c(beta0,beta1), nrow =1,ncol=2)
-kable((beta_mean - beta) / beta, 
-       caption = "Mean Relative Bias", col.names = c(("$\\beta_0$"), "$\\beta_1$"))
-
+rel_bias0 <- rep(0,simnum)
+rel_bias1 <- rep(0,simnum)
+for (i in 1:simnum) {
+  rel_bias0[i] <- (outbeta[i,1] - beta[1]) / beta[1]
+  rel_bias1[i] <- (outbeta[i,2] - beta[2]) / beta[2]
+}
+(MRB0 <- sum(rel_bias0) / simnum)
+(MRB1 <- sum(rel_bias1) / simnum)
 ```
  
 4. Calculate mean SE
