@@ -236,10 +236,10 @@ b) Why the scale parameter becomes 1.01 instead of 1 when only included 20 subje
 |died         |Patient died, 0 = No, 1 = Yes                                                       |
 |lka_d        |Date of last known alive                                                            |
 |yr2death     |Year until death                                                                    |
-|ao_reop      |Repeat aortic surgery (0, 1, 2)                                                     |
+|ao_reop      |Repeat aortic surgery (0: no reop and alive, 1: reop and alive, 2: reop and died)   |
 |yr2ao_reop   |Year until re-operation                                                             |
 |bsa_baseline |Body surface area at the baseline                                                   |
-|dateor       |Date of operation                                                                   |
+|dateor       |Date of operation(baseline date)                                                    |
 |bsa_echo     |body surface area measured at echo dates post baseline (i.e. follow up BSA measures)|
 |mdate        |Measurement date                                                                    |
 |root         |Aortic root size                                                                    |
@@ -258,11 +258,11 @@ b) Why the scale parameter becomes 1.01 instead of 1 when only included 20 subje
 * Cohort variable: bicuspid aortic valve (BAV) vs Tricuspid  aortic valve (TAV). 
 
 
-## Questions
-1. For the variable "day2vst"/"yr2vst", should we exclude observations that have negative values on this variable? (i.e. should we only include measurements that took place after operation?)
+## Q&A
+1. For the variable "day2vst"/"yr2vst", should we exclude observations that have negative values on this variable? (i.e. should we only include measurements that took place after operation?) --> Yes.
 
 2. Some patients had repeated aortic surgery. We need to compare the measurement date("mdate") and re-operation date, then exclude observations that measured the outcomes after re-operation.
-  + check "yr2ao_reop" vs "yr2vst" (i.e. for those who did re-operation, year until measurement should be less than year until re-operation) ? 
+  + check "yr2ao_reop" vs "yr2vst" (i.e. for those who did re-operation, year until measurement should be less than year until re-operation) ?  --> Yes.
 
 3. Steve mentioned that we should pay attention to the follow-up time. For each patient, if one of the measurement took place far away from other repeated measurement, then we may need to exclude this observation.
   + How to visualize this?
@@ -272,12 +272,50 @@ b) Why the scale parameter becomes 1.01 instead of 1 when only included 20 subje
   + Sudip said these may not be relevant for our project, so we can ignore those variables for now.
   + However, Steve wanted me to discuss with you about the selection bias (which will translate into the bias within parameters). In reality, we cannot quantify selection bias. During the simulation (matching), we can simulate 2 datasets (one was measured using only ECHO, the other one was measured from 3 different sources). Then we can add some bias to the parameter to simulate the bias.
   + The question is: To what extend the bias should be introduced so that the result from the former dataset will approach the later one. If there's only a little bit study based bias, but translate to huge parameter bias, then that's the concern. But if we induce large selection bias in the study, and only observe relatively small parameter related bias, then he'll be more comfortable to use that.
-
+--> can be discussed later
 
 # Jan 16-20, 2023
-## Meeting on Jan 17
+## Meeting on Jan 17 
+* "ao_reop": Repeat aortic surgery (0: no reop and alive, 1: reop and alive, 2: reop and died)
+* "dateor": baseline date
+* We need to define our sample first, before doing visualization for the outcome variable (eg. histogram of year between visits, skewed?)
+* Next step:
+  + count the number of observations each patient has, and create a new variable "visit" and "total visit" for each patient
+  + total visits vs frequency
+  + create a table compare characteristics of patients with and without baseline measurement
+  + other data exploration
+  + Read *Quasi-Least Squares* CH2(review) and CH3
+  
+## Accomplishment
+* Read *Quasi-Least Squares Regression* CH2, and still reading CH3
+* Exploratory Data Analysis
+  * Merged baseline variables to the longitudinal dataset
+  * Create variables **visit** and **total visit** to record number of measurements that each patients had.
+  * Analyze baseline information for patients with longitudinal measurements (298/406)                     + Hmisc::describe() to see basic summary statistics for all variables
+    + mean **age** around 64, 68% of the patients are **males**
+    + **BAV** 70%(209) vs **TAV** 30%(89)
+  * Summary for other variables
+    + **mdate**: the earliest measurement date is in 1994
+    + 3 abnormal root dimension (lowest 3 measurements), 148 missing measurements
+    + **src_root**: 98% of measurements used the same method, so the measurement error should be limited?
+    + **yr2vst**(or day2vst): some extremely high values eg. 19 years since 1st operation date
+  * ---> Question 1 below
+  * Baseline measurement (**"date_base"**): the measurements that occurred before/on the day of 1st operation were considered as baseline measurement of outcome.
+    + 38% patients did not have baseline measurements. 
+    + ---> Question 2
+  * ---> Question 3
+  * Create a new variable "yr2vst_diff" to record the time difference between consecutive measurements for each patient. (But it didn't consider those without baseline measurement who had their 1st measurement a long time after their 1st operation)
+  + ---> Question 4
 
+## Questions
+1.  Recall "ao_reop" (0: no reop and alive, 1: reop and alive, 2: reop and died, but there's a patient whose ao_reop = 1 but died? 
+  + Most of the patients didn't have repeated surgery.
+  
+2. The earliest (date_base) measurement date is 1994, but there're still 38% of the patients who did not have baseline measurements. 
 
+3. Should we exclude measurements that happened before 1st operation? 
+
+4.  How can we determine the cut-off point for excluding measurements that were taken a long time after the previous measurement(for those with baseline measurements) or 1st operation(for those without baseline measurements) ?
 
 
 

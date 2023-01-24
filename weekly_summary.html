@@ -913,7 +913,8 @@ root (1_Yes vs 2_No)</td>
 </tr>
 <tr class="even">
 <td align="left">ao_reop</td>
-<td align="left">Repeat aortic surgery (0, 1, 2)</td>
+<td align="left">Repeat aortic surgery (0: no reop and alive, 1: reop
+and alive, 2: reop and died)</td>
 </tr>
 <tr class="odd">
 <td align="left">yr2ao_reop</td>
@@ -925,7 +926,7 @@ root (1_Yes vs 2_No)</td>
 </tr>
 <tr class="odd">
 <td align="left">dateor</td>
-<td align="left">Date of operation</td>
+<td align="left">Date of operation(baseline date)</td>
 </tr>
 <tr class="even">
 <td align="left">bsa_echo</td>
@@ -988,20 +989,21 @@ on root dimension first).
 valve (TAV).</li>
 </ul>
 </div>
-<div id="questions" class="section level2">
-<h2>Questions</h2>
+<div id="qa-4" class="section level2">
+<h2>Q&amp;A</h2>
 <ol style="list-style-type: decimal">
 <li><p>For the variable “day2vst”/“yr2vst”, should we exclude
 observations that have negative values on this variable? (i.e. should we
-only include measurements that took place after operation?)</p></li>
+only include measurements that took place after operation?) –&gt;
+Yes.</p></li>
 <li><p>Some patients had repeated aortic surgery. We need to compare the
 measurement date(“mdate”) and re-operation date, then exclude
 observations that measured the outcomes after re-operation.</p></li>
 </ol>
 <ul>
 <li>check “yr2ao_reop” vs “yr2vst” (i.e. for those who did re-operation,
-year until measurement should be less than year until re-operation)
-?</li>
+year until measurement should be less than year until re-operation) ?
+–&gt; Yes.</li>
 </ul>
 <ol start="3" style="list-style-type: decimal">
 <li>Steve mentioned that we should pay attention to the follow-up time.
@@ -1034,7 +1036,8 @@ that the result from the former dataset will approach the later one. If
 there’s only a little bit study based bias, but translate to huge
 parameter bias, then that’s the concern. But if we induce large
 selection bias in the study, and only observe relatively small parameter
-related bias, then he’ll be more comfortable to use that.</li>
+related bias, then he’ll be more comfortable to use that. –&gt; can be
+discussed later</li>
 </ul>
 </div>
 </div>
@@ -1042,6 +1045,92 @@ related bias, then he’ll be more comfortable to use that.</li>
 <h1>Jan 16-20, 2023</h1>
 <div id="meeting-on-jan-17" class="section level2">
 <h2>Meeting on Jan 17</h2>
+<ul>
+<li>“ao_reop”: Repeat aortic surgery (0: no reop and alive, 1: reop and
+alive, 2: reop and died)</li>
+<li>“dateor”: baseline date</li>
+<li>We need to define our sample first, before doing visualization for
+the outcome variable (eg. histogram of year between visits,
+skewed?)</li>
+<li>Next step:
+<ul>
+<li>count the number of observations each patient has, and create a new
+variable “visit” and “total visit” for each patient</li>
+<li>total visits vs frequency</li>
+<li>create a table compare characteristics of patients with and without
+baseline measurement</li>
+<li>other data exploration</li>
+<li>Read <em>Quasi-Least Squares</em> CH2(review) and CH3</li>
+</ul></li>
+</ul>
+</div>
+<div id="accomplishment-5" class="section level2">
+<h2>Accomplishment</h2>
+<ul>
+<li>Read <em>Quasi-Least Squares Regression</em> CH2, and still reading
+CH3</li>
+<li>Exploratory Data Analysis
+<ul>
+<li>Merged baseline variables to the longitudinal dataset</li>
+<li>Create variables <strong>visit</strong> and <strong>total
+visit</strong> to record number of measurements that each patients
+had.</li>
+<li>Analyze baseline information for patients with longitudinal
+measurements (298/406) + Hmisc::describe() to see basic summary
+statistics for all variables
+<ul>
+<li>mean <strong>age</strong> around 64, 68% of the patients are
+<strong>males</strong></li>
+<li><strong>BAV</strong> 70%(209) vs <strong>TAV</strong> 30%(89)</li>
+</ul></li>
+<li>Summary for other variables
+<ul>
+<li><strong>mdate</strong>: the earliest measurement date is in
+1994</li>
+<li>3 abnormal root dimension (lowest 3 measurements), 148 missing
+measurements</li>
+<li><strong>src_root</strong>: 98% of measurements used the same method,
+so the measurement error should be limited?</li>
+<li><strong>yr2vst</strong>(or day2vst): some extremely high values eg.
+19 years since 1st operation date</li>
+</ul></li>
+<li>—&gt; Question 1 below</li>
+<li>Baseline measurement (<strong>“date_base”</strong>): the
+measurements that occurred before/on the day of 1st operation were
+considered as baseline measurement of outcome.
+<ul>
+<li>38% patients did not have baseline measurements.</li>
+<li>—&gt; Question 2</li>
+</ul></li>
+<li>—&gt; Question 3</li>
+<li>Create a new variable “yr2vst_diff” to record the time difference
+between consecutive measurements for each patient. (But it didn’t
+consider those without baseline measurement who had their 1st
+measurement a long time after their 1st operation)</li>
+<li>—&gt; Question 4</li>
+</ul></li>
+</ul>
+</div>
+<div id="questions" class="section level2">
+<h2>Questions</h2>
+<ol style="list-style-type: decimal">
+<li>Recall “ao_reop” (0: no reop and alive, 1: reop and alive, 2: reop
+and died, but there’s a patient whose ao_reop = 1 but died?</li>
+</ol>
+<ul>
+<li>Most of the patients didn’t have repeated surgery.</li>
+</ul>
+<ol start="2" style="list-style-type: decimal">
+<li><p>The earliest (date_base) measurement date is 1994, but there’re
+still 38% of the patients who did not have baseline
+measurements.</p></li>
+<li><p>Should we exclude measurements that happened before 1st
+operation?</p></li>
+<li><p>How can we determine the cut-off point for excluding measurements
+that were taken a long time after the previous measurement(for those
+with baseline measurements) or 1st operation(for those without baseline
+measurements) ?</p></li>
+</ol>
 </div>
 </div>
 
