@@ -297,29 +297,52 @@ b) Why the scale parameter becomes 1.01 instead of 1 when only included 20 subje
   * Summary for other variables
     + **mdate**: the earliest measurement date is in 1994
     + 3 abnormal root dimension (lowest 3 measurements), 148 missing measurements
-    + **src_root**: 98% of measurements used the same method, so the measurement error should be limited?
+    + **src_root**: 98% of measurements used the same method, so the measurement error should be limited
     + **yr2vst**(or day2vst): some extremely high values eg. 19 years since 1st operation date
-  * ---> Question 1 below
   * Baseline measurement (**"date_base"**): the measurements that occurred before/on the day of 1st operation were considered as baseline measurement of outcome.
     + 38% patients did not have baseline measurements. 
-    + ---> Question 2
-  * ---> Question 3
   * Create a new variable "yr2vst_diff" to record the time difference between consecutive measurements for each patient. (But it didn't consider those without baseline measurement who had their 1st measurement a long time after their 1st operation)
-  + ---> Question 4
 
 ## Questions
 1.  Recall "ao_reop" (0: no reop and alive, 1: reop and alive, 2: reop and died, but there's a patient whose ao_reop = 1 but died? 
-  + Most of the patients didn't have repeated surgery.
+  + Re-categorize this patient to ao_reop = 2 for now.
   
-2. The earliest (date_base) measurement date is 1994, but there're still 38% of the patients who did not have baseline measurements. 
+2. The earliest (date_base) measurement date is 1994, but there's still 38% of the patients who did not have baseline measurements. 
+  + We'll select our sample for patients who had a baseline measurement and at least 2 total visits.
 
-3. Should we exclude measurements that happened before 1st operation? 
+3.  How can we determine the cut-off point for excluding measurements that were taken a long time after the previous measurement(for those with baseline measurements) or 1st operation(for those without baseline measurements) ?
+  + First we need to select our sample.
+  
+  
+# Jan 23-27, 2023
+## Meeting on Jan 24 
+* Possible questions for Steve: How to dichotomize the response variable?
+* Select sample based on two conditions: 
+  + 1st visit should occurred on the date of 1st operation
+  + at least 2 total visits(including the baseline measurement)
+* Create a table to check the balance of baseline characteristics between BAV and TAV group
+* Match the selected sample
+* Re-do the plots
 
-4.  How can we determine the cut-off point for excluding measurements that were taken a long time after the previous measurement(for those with baseline measurements) or 1st operation(for those without baseline measurements) ?
+## Accomplishment
+* Read Quasi-Least Squares Regression Chapter3
+* Selected sample based on the two conditions
+* Performed pair matching base on all the baseline characteristics for the selected sample, resulting 25 pairs of patients
+* Check the balance between two groups before & after matching
+* Create several figures
+  + distribution of root at baseline & mean root change over time by groups
+  + distribution of yr2vst by groups
+
+## Questions
+1. The baseline characteristics are not very balance after matching (especially for the propensity score,age,sex,nc_sinus). Consider drop some covariates like nc_sinus(Replacement of the non-coronary sinus of the aortic root)?
+
+2. If we look at the histogram of yr2vst, their are some patients with TAV that had yr2vst greater than 10 years. However, the visit time difference between 2 consecutive visit are all less than 10 years. So the visit time is reasonable and not too far away from the last visit, but might be a little too far away from the 1st operation for some patients. 
+
+3. For patients with tricuspid aortic valve(TAV), they seem to had larger range of root dimension and year to visit values.
+  + People with bicuspid aortic valves (BAVs) are at a higher risk of developing aortic valve disease compared to those with TAV. So if people who had TAV and still need to do the operation to replace their aortic valve, does it mean those patients had more severe condition(extremely small or large root/older/diabetes/hyper/chlstrl) and that's probabily the reson why they had larger range of root dimension?
 
 
-
-
+4. Since the follow up time for each patient had unequal time intervals, does it mean the AR(1) correlation strucutre might not capture the within-subject correlation well?
 
 
 
