@@ -382,7 +382,7 @@ b) Why the scale parameter becomes 1.01 instead of 1 when only included 20 subje
 **Accomplishment**
 
 * Fit a GEE model with independent correlation structure.
-* Derived the equation for $\hat_\alpha$ from $Q(\alpha, \beta)$.
+* Derived the equation for $\hat \alpha$ from $Q(\alpha, \beta)$.
 * Attend the Intro to Niagara class.
 
 **Questions**
@@ -407,8 +407,36 @@ $$\sum_{i=1}^N [\alpha S_1 - (1+\alpha^2) S_2] $$
 
 ## Feb 13-17, 2023
 
-**Meeting on Feb 14**
+**No meeting on Feb 14**
+
+**Next Steps**
+
+1. Play around with the package CWGEE that was developed as part of the paper on ordinal cluster weighted GEE. (https://github.com/ayamitani/CWGEE)
+2. Run the main function
+3. Go into the specific R scripts that computes each step. For example, the script names “estalpha1_ar1.R” computes the alpha estimates in AR1 from the derivation that you just went through.
+
+## Feb 20-24, 2023
+
+**Reading Week(No meeting)**
 
 **Accomplishment**
 
-**Questions**
+1. Get familiar with the package CWGEE, tried the examples provided in the "README" file using the functions "ordCWGEE" and "ordCWGEE".
+2. Understand the R script "estalpha1_ar1" based on the calculation i did last week.
+
+
+
+## Feb 27- Mar 3, 2023
+
+
+
+
+
+
+
+
+
+
+
+
+
