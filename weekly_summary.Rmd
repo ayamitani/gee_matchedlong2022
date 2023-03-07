@@ -428,10 +428,28 @@ $$\sum_{i=1}^N [\alpha S_1 - (1+\alpha^2) S_2] $$
 
 ## Feb 27- Mar 3, 2023
 
+**Meeting on Feb 28**
+
+1. Refit the GEE model, remove "scale.fix=TURE" and "bav_confirmed" main effect.
+  + Result looks very similar.
+  
+2. Ask Steve & Sudip about how can we dichotomize the response variable, is there a good clinical cutoff?
+  + An absolute value of > 4.5 cm for the aortic root or growth > 5mm would be clinically relevant endpoints (Dr. Ouzounian).
+  + In our sample, 11 out of 226 observations have root > 45mm
+  + Does the growth of root matter in our case? (If it does, what about a decrease > 5mm?)
+  
+3. Look into the derivation of alpha and the R script.
+4. Generate a SSH key pair for Niagara
 
 
 
+## Mar 6-10, 2023
 
+**Meeting on Mar 7**
+
+
+
+**Meet with Sudip & Steve on Mar 24**
 
 
 
