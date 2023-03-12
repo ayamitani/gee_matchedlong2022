@@ -442,11 +442,21 @@ $$\sum_{i=1}^N [\alpha S_1 - (1+\alpha^2) S_2] $$
 4. Generate a SSH key pair for Niagara
 
 
-
 ## Mar 6-10, 2023
 
 **Meeting on Mar 7**
 
+1. Create a new binary variable "root1"
+  + root1 = 1 if root > 45 or root_diff > 5, otherwise root1 = 0
+2. Simulation for continuous outcome (*simscript_gaussian_ps.R*)
+  + generate big cohort
+  + create sample data by matching patients based on propensity scores
+  + repeat 1000 times and get mean coefficients and standard errors
+
+**Questions**
+
+1. Why the coefficients for BAV varies more obvious across difference correlation structure?
+2. Should we include the main effect of BAV in the model?
 
 
 **Meet with Sudip & Steve on Mar 24**
