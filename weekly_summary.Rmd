@@ -337,7 +337,7 @@ b) Why the scale parameter becomes 1.01 instead of 1 when only included 20 subje
 
 * Possible questions for Steve: How to dichotomize the response variable?
 * Select sample based on two conditions: 
-  + 1st visit should occurred on the date of 1st operation
+  + 1st visit should have occurred on the date of 1st operation
   + at least 2 total visits(including the baseline measurement)
 * Create a table to check the balance of baseline characteristics between BAV and TAV group
 * Match the selected sample
@@ -453,13 +453,40 @@ $$\sum_{i=1}^N [\alpha S_1 - (1+\alpha^2) S_2] $$
   + create sample data by matching patients based on propensity scores
   + repeat 1000 times and get mean coefficients and standard errors
 
+
+## Mar 13-17, 2023
+
+**Meeting on Mar 14**
+
+1. simscript_gaussian.ps.R : 
+  + add standard deviation of estimated beta
+  + try N = 250, and play around with "b1" (increase from 4 to 6) so that we get 10% TAV patients
+  + calculate mean bias, MSE, coverage probability
+
+2. simscript_gaussian.matched.R:
+  + add patient id
+  + repeat the previous precedures
+
 **Questions**
 
-1. Why the coefficients for BAV varies more obvious across difference correlation structure?
-2. Should we include the main effect of BAV in the model?
+1. When we generate outcome values(root), we include "bav" as a main effect. But in the GEE models, we only include bav as a interaction with visit. When calculate the mean relative bias, we need to use the true beta values from the model that we used to generate outcome.
+
+2. I calculated mean relative bias instead of mean bias of beta. Which one is more useful?
+
+3. QLS can account for more than one correlation (in our case we have within-subject & within pair), but we are using GEE for now. Does it mean we're focusing on the within-subject correlation and ignoring the within-pair correlation?
 
 
 **Meet with Sudip & Steve on Mar 24**
+
+1. Tentative timeline:
+  + March: figure out the code for QLS
+  + April: simulation for the continuous outcome
+  + May: simulation for binary outcome, creat poster for Biostatistics research day
+  + June & July: Write manuscript/report, finish before July 28.
+
+2. Explain how we cleaned the data and selected the sample
+
+3. Two ways of simulation
 
 
 
