@@ -470,27 +470,64 @@ $$\sum_{i=1}^N [\alpha S_1 - (1+\alpha^2) S_2] $$
 **Questions**
 
 1. When we generate outcome values(root), we include "bav" as a main effect. But in the GEE models, we only include bav as a interaction with visit. When calculate the mean relative bias, we need to use the true beta values from the model that we used to generate outcome.
+--> Don't inlcude main effect for BAV when generating root.
 
-2. I calculated mean relative bias instead of mean bias of beta. Which one is more useful?
+2. QLS can account for more than one correlation (in our case we have within-subject & within pair), but we are using GEE for now. Does it mean we're focusing on the within-subject correlation and ignoring the within-pair correlation?
+--> Yes.
 
-3. QLS can account for more than one correlation (in our case we have within-subject & within pair), but we are using GEE for now. Does it mean we're focusing on the within-subject correlation and ignoring the within-pair correlation?
 
+## Mar 20-24, 2023
 
-**Meet with Sudip & Steve on Mar 24**
+**Meeting on Mar 21**
+
+1. Comparison tables for GEE models:
+  - expect to see the bias for independence is higher, since it failed to capture dependency and the consistency of estimates depends on large sample property.
+  - MSE for unstructured GEE is larger because it's estimating more parameters. (18 parameters in total, including $\beta_0$, $\beta_1$, $\beta_2$, and 15 variance/covariances for 5 time points)
+  - SD for $\beta_0$ is larger, and coverage probabilities are lower. (may need to investigate, but not the focus for now)
+  - The mean SE in the second scenario (table 3) for AR1 and exchangeable are inflated. SE > SD, and coverage probability is higher.
+
+2. Next steps:
+  - add a random effects model with random intercept for each pair (match id), then add to the comparison table
+    + the coverage probability for $\beta_0$ using linear mixed effect model is much better
+  - transform the table
+  
+
+**Meeting with Sudip & Steve on Mar 24**
+
+Notes:
 
 1. Tentative timeline:
   + March: figure out the code for QLS
   + April: simulation for the continuous outcome
   + May: simulation for binary outcome, creat poster for Biostatistics research day
   + June & July: Write manuscript/report, finish before July 28.
-
-2. Explain how we cleaned the data and selected the sample
-
+2. Explain how we cleaned the data and selected the sample 
 3. Two ways of simulation
+  + (a) simulate hospital population and then match patients with BAV to TAV
+    + there're some residual imbalance
+  + (b) simulate matched pairs directly
+    + covariates are already balanced
 
+Feedback: 
 
+1. The match cohort of the case is not necessarily representative of the original BAV or TAV cohort. (only match patients in the overlapping region for the two distribution)
 
+2. We're only interested in $\beta_2$ (visit:BAV), and we can ignore the low coverage probability for $\beta_0$ for now. The contrast we compare is $Y_{BAV}-Y_{TAV}$.
 
+3. Since we used random intercept to generate outcome, there's no surprise that the standard deviation of beta estimates for the exchangeable GEE is the smallest. However, the standard deviation of beta estimates for the independence GEE is almost 4 times larger (result in wide CI), which means it's inefficient (25% efficiency).
+
+4. Make the first simulation method more realistic.
+  - Now the match cohort is very representative of the original cohort($\beta_0$ estimates very close to real, bias is almost 0)
+  - Two propensity score distribution: 
+    + Propensity score for the matched pair cohort & propensity score for the entire cohort
+    + Substantial overlap v.s. median overlap v.s. upper tail over one distribution overlap with lower tail of the other distribution
+  - Is there a rule of thumb that how much overlap (in terms of proportion of the distribution or number of patients within the overlapped region) should be. 
+  
+5. Make the study more clinical relevant:
+  + account for potential informative censoring or drop out, introduce endogeneity
+  + eg. when generate outcome(root), given the root at time 2, simulate time of death since time 2. If the simulated death is before time 3, then all the subsequent observations are removed.
+  
+6. Submit the R markdown file that includes all my codes when submitting the report.
 
 
 
