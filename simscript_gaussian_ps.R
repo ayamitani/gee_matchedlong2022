@@ -18,7 +18,7 @@ b4 <- 1.5
 
 # coef for generating outcome values
 b1_r <- 30
-b2_r <- 0.5
+b2_r <- 0
 b3_r <- -0.2
 b4_r <- 0.5
 beta_true <- cbind(b1_r, b3_r, b4_r)
@@ -77,6 +77,14 @@ outvec_exchs <- vector("list", length = simnum)
 outvec_ar1s <- vector("list", length = simnum)
 outvec_unstrs <- vector("list", length = simnum)
 
+# create lists for lme model
+estbeta_lme <- vector("list", length = simnum)
+se_lme <- vector("list", length = simnum)
+relbias_lme <- vector("list", length = simnum)
+mse_lme <- vector("list", length = simnum) 
+cp_lme<- vector("list", length = simnum)
+outvec_lme <- vector("list", length = simnum)
+
 geeglm_ci <- function(model, level = 0.95) {
   # Calculate the lower and upper bounds of the confidence interval for each parameter
   lower <- coef(model) - qnorm(1-(1-0.95)/2) * summary(model)$coefficients[, "Std.err"]
@@ -119,6 +127,11 @@ matched_base <- data.frame(simdat_base, matches = ps.pm, check.rows = TRUE) %>%
   filter(!is.na(matches))
 #bal.tab(ps.pm, covs = subset(simdat_base, select = c(age, female, bsa_bl)),distance = ps$fitted.values) 
 matched_long <- simdat[simdat$id %in% matched_base$id,] # sample data
+
+# join the matches column from matched_base to matched_long
+matched_long <- matched_long %>% 
+  left_join(matched_base %>% select(id, matches), by = "id") %>%
+  mutate(matchid = matches)
 
 
 # fit gee with indep, exch, ar1, unstr to entire cohort and sample data and save estimates and ses 
@@ -183,6 +196,7 @@ matched_long <- simdat[simdat$id %in% matched_base$id,] # sample data
     relbias_unstr[[s]][i] <- (estbeta_unstr[[s]][i] - beta_true[i]) / beta_true[i]
     mse_unstr[[s]][i] <- (estbeta_unstr[[s]][i] - beta_true[i])^2
     ifelse(beta_true[i]>=ci_unstr[i,1]&beta_true[i]<=ci_unstr[i,2], cp_unstr[[s]][i]<-1, cp_unstr[[s]][i]<-0)
+    
   }
   outvec_unstr[[s]] <- c(s, N, estbeta_unstr[[s]][1],estbeta_unstr[[s]][2],estbeta_unstr[[s]][3],
                          se_unstr[[s]][1],se_unstr[[s]][2],se_unstr[[s]][3],relbias_unstr[[s]][1],
@@ -251,6 +265,22 @@ matched_long <- simdat[simdat$id %in% matched_base$id,] # sample data
                          se_unstrs[[s]][1],se_unstrs[[s]][2],se_unstrs[[s]][3],relbias_unstrs[[s]][1],
                          relbias_unstrs[[s]][2],relbias_unstrs[[s]][3],mse_unstrs[[s]][1],mse_unstrs[[s]][2],
                          mse_unstrs[[s]][3],cp_unstrs[[s]][1],cp_unstrs[[s]][2],cp_unstrs[[s]][3])
+  
+  #linear mixed effect model
+  lme <- lmer(root ~  visit + bav:visit + (1|matchid), data = matched_long)
+  estbeta_lme[[s]] <- summary(lme)$coef[,1]
+  se_lme[[s]] <- summary(lme)$coef[,2]
+  ci_lme <- confint(lme)[3:5,]
+  for (i in 1:length(beta_true)) {
+    relbias_lme[[s]][i] <- (estbeta_lme[[s]][i] - beta_true[i]) / beta_true[i]
+    mse_lme[[s]][i] <- (estbeta_lme[[s]][i] - beta_true[i])^2
+    ifelse(beta_true[i]>=ci_lme[i,1]&beta_true[i]<=ci_lme[i,2], cp_lme[[s]][i]<-1, cp_lme[[s]][i]<-0)
+  }
+  outvec_lme[[s]] <- c(s, nrow(matched_base), estbeta_lme[[s]][1],estbeta_lme[[s]][2],estbeta_lme[[s]][3],
+                       se_lme[[s]][1],se_lme[[s]][2],se_lme[[s]][3],relbias_lme[[s]][1],
+                       relbias_lme[[s]][2],relbias_lme[[s]][3],mse_lme[[s]][1],mse_lme[[s]][2],
+                       mse_lme[[s]][3],cp_lme[[s]][1],cp_lme[[s]][2],cp_lme[[s]][3])
+    
   print(s)
 }
 
@@ -270,6 +300,7 @@ colnames(outvec_ar1) <- names
 outvec_unstr <- do.call("rbind", outvec_unstr)
 colnames(outvec_unstr) <- names
 
+
 outmean_ind <- c(simnum,colMeans(outvec_ind[,-1]), sd(outvec_ind[,"estbeta0"]),
                  sd(outvec_ind[,"estbeta1"]),sd(outvec_ind[,"estbeta2"]))
 outmean_exch <- c(simnum,colMeans(outvec_exch[,-1]),sd(outvec_exch[,"estbeta0"]),
@@ -278,17 +309,30 @@ outmean_ar1 <- c(simnum,colMeans(outvec_ar1[,-1]),sd(outvec_ar1[,"estbeta0"]),
                  sd(outvec_ar1[,"estbeta1"]),sd(outvec_ar1[,"estbeta2"]))
 outmean_unstr <- c(simnum,colMeans(outvec_unstr[,-1]),sd(outvec_unstr[,"estbeta0"]),
                    sd(outvec_unstr[,"estbeta1"]),sd(outvec_unstr[,"estbeta2"]))
-out_cohort <- rbind(outmean_ind,outmean_exch,outmean_ar1,outmean_unstr)
-colnames(out_cohort)[c(1,(ncol(out_cohort)-2):ncol(out_cohort))] <- c("simnum","SD(b0)","SD(b1)","SD(b2)")
-rownames(out_cohort) <- c("Independence", "Exchangeable","AR(1)","Unstructured")
 
-table1 <- kable(out_cohort, digits = 3, escape = FALSE,
-    caption = "GEE models comparison for the entire cohort",
-    col.names = c("simnum","sample size", "$\\hat \\beta_0$", "$\\hat \\beta_1$", "$\\hat \\beta_2$",
-                  "SE(b0)", "SE(b1)", "SE(b2)","RelBias(b0)","RelBias(b1)",
-                  "RelBias(b2)", "MSE(b0)","MSE(b1)","MSE(b2)","CovProb(b0)",
-                  "CovProb(b1)","CovProb(b2)","SD(b0)","SD(b1)","SD(b2)")) %>%
-  kable_styling(full_width = F, position = "center")
+
+#Model <- c(rep("Independence",3), rep("Exchangeable",3), rep("AR(1)",3),rep("Unstructured",3))
+Model <- c("Independence","","","Exchangeable","","", "AR(1)","","","Unstructured","","")
+Parameters <- rep(c("$\\beta_0$", "$\\beta_1$", "$\\beta_2$"),4)
+MeanEstimates <- c(outmean_ind[3:5], outmean_exch[3:5],outmean_ar1[3:5],outmean_unstr[3:5])
+TrueValues <- rep(beta_true,4)
+MeanSE <- c(outmean_ind[6:8], outmean_exch[6:8],outmean_ar1[6:8],outmean_unstr[6:8])
+SD <- c(outmean_ind[18:20], outmean_exch[18:20],outmean_ar1[18:20],outmean_unstr[18:20])
+MeanRelBias <- c(outmean_ind[9:11], outmean_exch[9:11],outmean_ar1[9:11],outmean_unstr[9:11])
+MSE <- c(outmean_ind[12:14], outmean_exch[12:14],outmean_ar1[12:14],outmean_unstr[12:14])
+CovProb <- c(outmean_ind[15:17], outmean_exch[15:17],outmean_ar1[15:17],outmean_unstr[15:17])
+numout <- round(cbind(TrueValues, MeanEstimates, MeanSE, SD, MeanRelBias, MSE, CovProb),3)
+SampleSize <- rep(N, 12)
+t <- data.frame(Model, SampleSize, Parameters, numout)
+
+out_t1 <- kableExtra::kable(t, row.names=FALSE, escape = FALSE,
+                  caption = "GEE models comparison for entire cohort with 1000 simulations",
+                  col.names = c("Model","Sample size","Parameters","True values","Mean estimates","Mean SE",
+                                "SD","Mean relative bias","MSE","Coverage prob")) %>% 
+  kable_styling(full_width = F, position = "center") %>%
+  #collapse_rows(columns = 1, valign = "middle") %>%
+  row_spec(c(3,6,9,12),  background = "lightgrey") %>%
+  column_spec(1:2,background = "transparent") 
 
 
 # 2) sample data outcome
@@ -300,6 +344,8 @@ outvec_ar1s <- do.call("rbind", outvec_ar1s)
 colnames(outvec_ar1s) <- names
 outvec_unstrs <- do.call("rbind", outvec_unstrs)
 colnames(outvec_unstrs) <- names
+outvec_lme <- do.call("rbind", outvec_lme)
+colnames(outvec_lme) <- names
 
 outmean_inds <- c(simnum,colMeans(outvec_inds[,-1]), sd(outvec_inds[,"estbeta0"]),
                  sd(outvec_inds[,"estbeta1"]),sd(outvec_inds[,"estbeta2"]))
@@ -309,31 +355,40 @@ outmean_ar1s <- c(simnum,colMeans(outvec_ar1s[,-1]),sd(outvec_ar1s[,"estbeta0"])
                  sd(outvec_ar1s[,"estbeta1"]),sd(outvec_ar1s[,"estbeta2"]))
 outmean_unstrs <- c(simnum,colMeans(outvec_unstrs[,-1]),sd(outvec_unstrs[,"estbeta0"]),
                    sd(outvec_unstrs[,"estbeta1"]),sd(outvec_unstrs[,"estbeta2"]))
-out_sample <- rbind(outmean_inds,outmean_exchs,outmean_ar1s,outmean_unstrs)
-colnames(out_sample)[c(1,(ncol(out_sample)-2):ncol(out_sample))] <- c("simnum","SD(b0)","SD(b1)","SD(b2)")
-rownames(out_sample) <- c("Independence", "Exchangeable","AR(1)","Unstructured")
+outmean_lme <- c(simnum, colMeans(outvec_lme[,-1]), sd(outvec_lme[,"estbeta0"]),
+                 sd(outvec_lme[,"estbeta1"]),sd(outvec_lme[,"estbeta2"]))
 
-table2 <- kable(out_sample, digits = 3, escape = FALSE,
-              caption = "GEE models comparison for the sample data(matched pairs)",
-              col.names = c("simnum","sample size", "$\\hat \\beta_0$", "$\\hat \\beta_1$", "$\\hat \\beta_2$",
-                            "SE(b0)", "SE(b1)", "SE(b2)","RelBias(b0)","RelBias(b1)",
-                            "RelBias(b2)", "MSE(b0)","MSE(b1)","MSE(b2)","CovProb(b0)",
-                            "CovProb(b1)","CovProb(b2)","SD(b0)","SD(b1)","SD(b2)")) %>%
-  kable_styling(full_width = F, position = "center")
+Model <- c("Independence","","","Exchangeable","","", "AR(1)","","","Unstructured","","",
+           "Linear mixed effect","","")
+Parameters <- rep(c("$\\beta_0$", "$\\beta_1$", "$\\beta_2$"),5)
+SampleSize1 <- rep(outmean_inds[2],15)
+MeanEstimates <- c(outmean_inds[3:5], outmean_exchs[3:5],outmean_ar1s[3:5],outmean_unstrs[3:5],
+                   outmean_lme[3:5])
+TrueValues <- rep(beta_true,5)
+MeanSE <- c(outmean_inds[6:8], outmean_exchs[6:8],outmean_ar1s[6:8],outmean_unstrs[6:8],
+            outmean_lme[6:8])
+SD <- c(outmean_inds[18:20], outmean_exchs[18:20],outmean_ar1s[18:20],outmean_unstrs[18:20],
+        outmean_lme[18:20])
+MeanRelBias <- c(outmean_inds[9:11], outmean_exchs[9:11],outmean_ar1s[9:11],outmean_unstrs[9:11],
+                 outmean_lme[9:11])
+MSE <- c(outmean_inds[12:14], outmean_exchs[12:14],outmean_ar1s[12:14],outmean_unstrs[12:14],
+         outmean_lme[12:14])
+CovProb <- c(outmean_inds[15:17], outmean_exchs[15:17],outmean_ar1s[15:17],outmean_unstrs[15:17],
+             outmean_lme[15:17])
+numout <- round(cbind(TrueValues, MeanEstimates, MeanSE, SD, MeanRelBias, MSE, CovProb),3)
+t2 <- data.frame(Model, SampleSize1, Parameters, numout)
 
+out_t2 <- kableExtra::kable(t2, row.names=FALSE, escape = FALSE,
+                  caption = "GEE models comparison for matched sample with 1000 simulations",
+                  col.names = c("Model","Sample size","Parameters","True values","Mean estimates",
+                                "Mean SE","SD","Mean relative bias","MSE","Coverage prob")) %>% 
+  kable_styling(full_width = F, position = "center") %>%
+  #collapse_rows(columns = 1, valign = "middle") %>%
+  row_spec(c(3,6,9,12,15), background = "lightgrey") %>%
+  column_spec(1:2, background = "transparent") 
 
-comb <- rbind(c(rep("",ncol(out_cohort))), round(out_cohort,3),
-      c(rep("",ncol(out_sample))) ,round(out_sample,3))
-rownames(comb)[c(1,6)] <- c("Entire cohort","Sample data(matched pairs)")
-
-knitr::kable(comb, digits = 3, escape = FALSE,
-      caption = "GEE models comparison for difference correlation structures",
-      col.names = c("simulation number","sample size", "$\\hat \\beta_0$", "$\\hat \\beta_1$", "$\\hat \\beta_2$",
-                    "SE(b0)", "SE(b1)", "SE(b2)","Relative Bias(b0)","Relative Bias(b1)",
-                    "Relative Bias(b2)", "MSE(b0)","MSE(b1)","MSE(b2)","Coverage Prob(b0)",
-                    "Coverage Prob(b1)","Coverage Prob(b2)","SD(b0)","SD(b1)","SD(b2)")) %>%
-  kable_styling(full_width = F, position = "center")
-
+out_t1
+out_t2
 test <- simdat %>% group_by(id) %>% slice(1)
 table(test$bav)
 mean(test$bav)
