@@ -10,11 +10,20 @@ visit <- rep(1:maxT, N)
 # vector of patient ids
 id <- rep(1:N, each = maxT)
 
-# coef for baseline covariates
-b1 <- 6 # 4-->6
-b2 <- -0.1
-b3 <- -1.3
-b4 <- 1.5
+# proportion of bav = 0 in hospital cohort
+pbav0 = 0.1
+
+# coef for baseline covariates for bav = 0
+b01 <- 1 # 4-->6 
+b02 <- -0.2
+b03 <- -1.5
+b04 <- 2
+# coef for baseline covariates for bav = 1
+b11 <- 20 
+b12 <- -0.2
+b13 <- -1.3
+b14 <- 1.5
+
 
 # coef for generating outcome values
 b1_r <- 30
@@ -96,14 +105,23 @@ geeglm_ci <- function(model, level = 0.95) {
 #Simulation----
 for (s in 1:simnum) {
 # baseline covariates
-agei <- rnorm(N, mean = 60, sd = 10)
-femalei <- rbinom(N, size = 1, prob = 0.3)
-bsa_bli <- rnorm(N, mean = 2, sd = 0.2)
-ps_xbeta <- b1 + b2 * agei + b3 * femalei + b4 * bsa_bli
-pscore <- exp(ps_xbeta)/ (1 + exp(ps_xbeta))
+age0i <- rnorm(pbav0 * N, mean = 60, sd = 10)
+female0i <- rbinom(pbav0 * N, size = 1, prob = 0.3)
+bsa_bl0i <- rnorm(pbav0 * N, mean = 2, sd = 0.2)
+age1i <- rnorm((1 - pbav0) * N, mean = 60, sd = 10)
+female1i <- rbinom((1 - pbav0) * N, size = 1, prob = 0.3)
+bsa_bl1i <- rnorm((1 - pbav0) * N, mean = 2, sd = 0.2)
+ps0_xbeta <- b01 + b02 * age0i + b03 * female0i + b04 * bsa_bl0i
+pscore0 <- exp(ps0_xbeta)/ (1 + exp(ps0_xbeta))
+ps1_xbeta <- b11 + b12 * age1i + b13 * female1i + b14 * bsa_bl1i
+pscore1 <- exp(ps1_xbeta)/ (1 + exp(ps1_xbeta))
+pscore <- c(pscore0, pscore1)
 bavi <- rbinom(N, size = 1, prob = pscore)
 
 # repeat baseline covariates maxT times
+agei <- c(age0i, age1i)
+femalei <- c(female0i, female1i)
+bsa_bli <- c(bsa_bl0i, bsa_bl1i)
 age <- rep(agei, each = maxT)
 female <- rep(femalei, each = maxT)
 bsa_bl <- rep(bsa_bli, each = maxT)
