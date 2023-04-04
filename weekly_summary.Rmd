@@ -530,5 +530,34 @@ Feedback:
 6. Submit the R markdown file that includes all my codes when submitting the report.
 
 
+## Mar 27-31, 2023
+**Meeting on Mar 28**
 
+1. The sandwich estimator in GEE underestimates the true variance in small samples 
+  + apply the small sample adjustment 
+  + One simpel adjustment: DF (degrees of freedom)-corrected sandwich estimator proposed by MacKinnon and White (1985) in which the variance-covariance matrix is multiplied by N/(N-p) where N is the number of clusters (number of participants) and p is the number of regression parameters.
 
+2. Simulate propensity scores for BAV and TAV groups
+  + consider 3 scenarios (high/moderate/low proportion of overlapping)
+  
+**Accomplishment**
+
+1. Apply DF-corrected sandwich estimator to the GEE models for matched sample.
+  + Adjusted standard errors are larger, and adjusted coverage probabilities are also larger.
+  
+3. Modify the coefficients for baseline covariates for BAV & TAV, so that we have high/moderate/minimal overlapping propensity score distributions for the two groups and have 10% TAV.
+
+**Questions**
+
+1. If I simulate the propensity scores for the 2 groups separetely but with the same original baseline covariates (b1...b4), the SD and MSE for unstructured model for matched sample will be smaller. Why?
+
+2. if i modify the values for baseline covariates, the sample size will also change, how can i make sure we got 10% TAV?
+
+3. If we simulate the two groups with minimal overlapped propensity score distributions, then the matched sample may not have balanced baseline covariates, does it matter?
+
+4. The overlapping proportion for the high scenario is lower for the entire cohort (0.4, why?) but the sample distribution has much higher overlapping proportion.
+
+5. Presentation:
+  + should i only talk about the first simulation method? What about the 3 overlapping scenarios?
+  + Which table should i present and how to interpret the result?
+  + Do I still need to show the linear mixed model?
