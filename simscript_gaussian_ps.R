@@ -13,21 +13,25 @@ id <- rep(1:N, each = maxT)
 # proportion of bav = 0 in hospital cohort
 pbav0 = 0.1
 
-# # coef for baseline covariates (high overlap)
-# b1 <- 6 # 4-->6
-# b2 <- -0.1
-# b3 <- -1.3
-# b4 <- 1.5
-# coef for baseline covariates for bav = 0 (Moderate)
-b01 <- 3
+# coef for baseline covariates (high overlap)
+b01 <- 6 # 4-->6
 b02 <- -0.1
-b03 <- -1.5
+b03 <- -1.3
 b04 <- 1.5
-# coef for baseline covariates for bav = 1
-b11 <- 6
+b11 <- 6 # 4-->6
 b12 <- -0.1
 b13 <- -1.3
-b14 <- 2
+b14 <- 1.5
+# coef for baseline covariates for bav = 0 (Moderate)
+# b01 <- 3
+# b02 <- -0.1
+# b03 <- -1.5
+# b04 <- 1.5
+# # coef for baseline covariates for bav = 1
+# b11 <- 6
+# b12 <- -0.1
+# b13 <- -1.3
+# b14 <- 2
 # # coef for baseline covariates for bav = 0 (Minimal)
 # b01 <- 2 # 4-->6 
 # b02 <- -0.2
