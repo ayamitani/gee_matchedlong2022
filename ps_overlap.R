@@ -1,6 +1,6 @@
 library(overlapping)
 set.seed(2)
-simnum <- 1000
+simnum <- 10
 # total sample size
 N <- 250
 p <- 3 # number of regression parameters
@@ -50,18 +50,14 @@ b13_l <- -1.3
 b14_l <- 1.5
 
 # coef for generating outcome values
-b1_r <- 30
-b2_r <- 0
-b3_r <- -0.2
-b4_r <- 0.5
+b1_r <- 18 #intercept
+b2_r <- -0.1 #visit
+b3_r <- 0.01 #age
+b4_r <- -2 #sex_female
+b5_r <- 8 #bsa baseline
+b6_r <- 0.3 #visit:bav
 
 for (i in 1:simnum) {
-  # generate outcome values
-  bi <- rnorm(N, mean = 0, sd = 5)
-  b <- rep(bi, each = maxT)
-  e <- rnorm(N*maxT, mean = 0, sd = 1)
-  root <- b1_r + b2_r * bav + b3_r * visit + b4_r * bav * visit + b + e
-  
   ## High overlap:-------------------------------------------------------------
   # baseline covariates
   agei <- rnorm(N, mean = 60, sd = 10)
@@ -76,6 +72,12 @@ for (i in 1:simnum) {
   bsa_bl <- rep(bsa_bli, each = maxT)
   bav <- rep(bavi, each = maxT)
   prop_score <- rep(ps_xbeta, each = maxT)
+  
+  # generate outcome values
+  bi <- rnorm(N, mean = 0, sd = 5)
+  b <- rep(bi, each = maxT)
+  e <- rnorm(N*maxT, mean = 0, sd = 1)
+  root <- b1_r + b2_r * visit + b3_r * age + b4_r * female + b5_r * bsa_bl + b6_r * bav * visit + b + e
   
   simdat <- as.data.frame(cbind(id, visit, age, female, bsa_bl, bav, root, prop_score))
   simdat_base <- simdat %>% group_by(id) %>% slice(1)
@@ -126,6 +128,12 @@ for (i in 1:simnum) {
   bav <- rep(bavi_m, each = maxT)
   prop_score <- rep(ps_xbeta, each = maxT)
   
+  # generate outcome values
+  bi <- rnorm(N, mean = 0, sd = 5)
+  b <- rep(bi, each = maxT)
+  e <- rnorm(N*maxT, mean = 0, sd = 1)
+  root <- b1_r + b2_r * visit + b3_r * age + b4_r * female + b5_r * bsa_bl + b6_r * bav * visit + b + e
+  
   simdat <- as.data.frame(cbind(id, visit, age, female, bsa_bl, bav, root,prop_score))
   simdat_base <- simdat %>% group_by(id) %>% slice(1)
   
@@ -174,6 +182,12 @@ for (i in 1:simnum) {
   bsa_bl <- rep(bsa_bli, each = maxT)
   bav <- rep(bavi_l, each = maxT)
   prop_score <- rep(ps_xbeta, each = maxT)
+  
+  # generate outcome values
+  bi <- rnorm(N, mean = 0, sd = 5)
+  b <- rep(bi, each = maxT)
+  e <- rnorm(N*maxT, mean = 0, sd = 1)
+  root <- b1_r + b2_r * visit + b3_r * age + b4_r * female + b5_r * bsa_bl + b6_r * bav * visit + b + e
   
   simdat <- as.data.frame(cbind(id, visit, age, female, bsa_bl, bav, root,prop_score))
   simdat_base <- simdat %>% group_by(id) %>% slice(1)
