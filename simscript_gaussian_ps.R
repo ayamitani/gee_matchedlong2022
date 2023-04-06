@@ -23,34 +23,34 @@ b12 <- -0.1
 b13 <- -1.3
 b14 <- 1.5
 # coef for baseline covariates for bav = 0 (Moderate)
-# b01 <- 3
-# b02 <- -0.1
-# b03 <- -1.5
-# b04 <- 1.5
-# # coef for baseline covariates for bav = 1
-# b11 <- 6
-# b12 <- -0.1
-# b13 <- -1.3
-# b14 <- 2
+b01 <- 3
+b02 <- -0.1
+b03 <- -1.5
+b04 <- 1.5
+# coef for baseline covariates for bav = 1
+b11 <- 6
+b12 <- -0.1
+b13 <- -1.3
+b14 <- 2
 # # coef for baseline covariates for bav = 0 (Minimal)
-# b01 <- 2 # 4-->6
-# b02 <- -0.2
-# b03 <- -1.5
-# b04 <- 1.5
-# # coef for baseline covariates for bav = 1
-# b11 <- 10
-# b12 <- -0.1
-# b13 <- -1.3
-# b14 <- 1.5
+b01 <- 2 # 4-->6
+b02 <- -0.2
+b03 <- -1.5
+b04 <- 1.5
+# coef for baseline covariates for bav = 1
+b11 <- 10
+b12 <- -0.1
+b13 <- -1.3
+b14 <- 1.5
 
 
 # coef for generating outcome values
 b1_r <- 18 #intercept
-b2_r <- -0.1 #visit
-b3_r <- 0.01 #age
+b2_r <- -0.5 #visit
+b3_r <- 0.1 #age
 b4_r <- -2 #sex_female
-b5_r <- 8 #bsa baseline
-b6_r <- 0.3 #visit:bav
+b5_r <- 2 #bsa baseline
+b6_r <- 0.5 #visit:bav
 beta_true <- cbind(b1_r, b2_r, b3_r, b4_r, b5_r, b6_r)
 beta_true_s <- cbind(b1_r,b2_r,b6_r)
 p <- length(beta_true) # number of regression parameters
@@ -339,7 +339,7 @@ matched_long <- matched_long %>%
                           unlist(relbias_unstrs[[s]]), unlist(mse_unstrs[[s]]), unlist(cp_unstrs[[s]]), unlist(ccp_unstrs[[s]]))
   
   #linear mixed effect model
-  lme <- lmer(root ~  visit + bav:visit + (1|matchid), data = matched_long)
+  lme <- lmer(root ~  visit + bav:visit + (1|id), data = matched_long)
   estbeta_lme[[s]] <- summary(lme)$coef[,1]
   se_lme[[s]] <- summary(lme)$coef[,2]
   ci_lme <- confint(lme)[3:5,]
