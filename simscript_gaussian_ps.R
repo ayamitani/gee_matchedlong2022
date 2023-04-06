@@ -1,6 +1,6 @@
 ### generate big cohort 
 set.seed(2)
-simnum <- 1000
+simnum <- 100
 # total sample size
 N <- 250
 # total number of visits
