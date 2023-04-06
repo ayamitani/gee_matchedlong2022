@@ -348,8 +348,8 @@ matched_long <- matched_long %>%
     mse_lme[[s]][i] <- (estbeta_lme[[s]][i] - beta_true_s[i])^2
     ifelse(beta_true_s[i]>=ci_lme[i,1]&beta_true_s[i]<=ci_lme[i,2], cp_lme[[s]][i]<-1, cp_lme[[s]][i]<-0)
   }
-  outvec_lme[[s]] <- c(s,K, unlist(estbeta_unstrs[[s]]),unlist(se_unstrs[[s]]),NA,NA,NA,
-                       unlist(relbias_unstrs[[s]]),unlist(mse_unstrs[[s]]), unlist(cp_unstrs[[s]]),NA,NA,NA)
+  outvec_lme[[s]] <- c(s,K, unlist(estbeta_lme[[s]]),unlist(se_lme[[s]]),NA,NA,NA,
+                       unlist(relbias_lme[[s]]),unlist(mse_lme[[s]]), unlist(cp_lme[[s]]),NA,NA,NA)
     
   print(s)
 }
