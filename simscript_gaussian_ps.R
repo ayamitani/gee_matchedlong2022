@@ -22,37 +22,38 @@ b11 <- 6 # 4-->6
 b12 <- -0.1
 b13 <- -1.3
 b14 <- 1.5
-# coef for baseline covariates for bav = 0 (Moderate)
-b01 <- 3
-b02 <- -0.1
-b03 <- -1.5
-b04 <- 1.5
-# coef for baseline covariates for bav = 1
-b11 <- 6
-b12 <- -0.1
-b13 <- -1.3
-b14 <- 2
+# # coef for baseline covariates for bav = 0 (Moderate)
+# b01 <- 3
+# b02 <- -0.1
+# b03 <- -1.5
+# b04 <- 1.5
+# # coef for baseline covariates for bav = 1
+# b11 <- 6
+# b12 <- -0.1
+# b13 <- -1.3
+# b14 <- 2
 # # coef for baseline covariates for bav = 0 (Minimal)
-b01 <- 2 # 4-->6
-b02 <- -0.2
-b03 <- -1.5
-b04 <- 1.5
-# coef for baseline covariates for bav = 1
-b11 <- 10
-b12 <- -0.1
-b13 <- -1.3
-b14 <- 1.5
+# b01 <- 2 # 4-->6
+# b02 <- -0.2
+# b03 <- -1.5
+# b04 <- 1.5
+# # coef for baseline covariates for bav = 1
+# b11 <- 10
+# b12 <- -0.1
+# b13 <- -1.3
+# b14 <- 1.5
 
 
 # coef for generating outcome values
-b1_r <- 18 #intercept
-b2_r <- -0.5 #visit
-b3_r <- 0.1 #age
-b4_r <- -2 #sex_female
-b5_r <- 2 #bsa baseline
-b6_r <- 0.5 #visit:bav
-beta_true <- cbind(b1_r, b2_r, b3_r, b4_r, b5_r, b6_r)
-beta_true_s <- cbind(b1_r,b2_r,b6_r)
+b1_r <- 20 #intercept
+b2_r <- -2 #bav
+b3_r <- -0.5 #visit
+b4_r <- -0.1 #age
+b5_r <- -2 #sex_female
+b6_r <- 2 #bsa baseline
+b7_r <- 0.5 #visit:bav
+beta_true <- cbind(b1_r, b2_r, b3_r, b4_r, b5_r, b6_r, b7_r)
+beta_true_s <- cbind(b1_r,b3_r,b7_r)
 p <- length(beta_true) # number of regression parameters
 
 # create lists for output(cohort)
@@ -183,7 +184,7 @@ bi <- rnorm(N, mean = 0, sd = 5)
 b <- rep(bi, each = maxT)
 e <- rnorm(N*maxT, mean = 0, sd = 1)
 # add the confounders (age, female, bsa_bl)
-root <- b1_r + b2_r * visit + b3_r * age + b4_r * female + b5_r * bsa_bl + b6_r * bav * visit + b + e
+root <- b1_r + b2_r*bav +b3_r * visit + b4_r * age + b5_r * female + b6_r * bsa_bl + b7_r * bav * visit + b + e
 
 simdat <- as.data.frame(cbind(id, visit, age, female, bsa_bl, bav, root))
 
@@ -213,7 +214,7 @@ matched_long <- matched_long %>%
 
 # ** a) entire cohort----
   #1) independece
-  gee_ind <- geeglm(root ~ visit + age + female + bsa_bl + bav:visit, data = simdat, family = gaussian,
+  gee_ind <- geeglm(root ~ bav + visit + age + female + bsa_bl + bav:visit, data = simdat, family = gaussian,
                     id = id, waves = visit, corstr = "independence")
   estbeta_ind[[s]] <- coef(gee_ind) # beta estimates
   se_ind[[s]] <- summary(gee_ind)$coefficient[,2] # standard errors
@@ -228,7 +229,7 @@ matched_long <- matched_long %>%
                     
   
   #2) exchangeable
-  gee_exch <- geeglm(root ~ visit + age + female + bsa_bl + bav:visit, data = simdat, family = gaussian,
+  gee_exch <- geeglm(root ~ bav + visit + age + female + bsa_bl + bav:visit, data = simdat, family = gaussian,
                     id = id, waves = visit, corstr = "exchangeable")
   estbeta_exch[[s]] <- coef(gee_exch)
   se_exch[[s]] <- summary(gee_exch)$coefficient[,2]
@@ -242,7 +243,7 @@ matched_long <- matched_long %>%
                         unlist(relbias_exch[[s]]), unlist(mse_exch[[s]]), unlist(cp_exch[[s]]))
   
   #3) AR1
-  gee_ar1 <- geeglm(root ~ visit + age + female + bsa_bl + bav:visit, data = simdat, family = gaussian,
+  gee_ar1 <- geeglm(root ~ bav + visit + age + female + bsa_bl + bav:visit, data = simdat, family = gaussian,
                      id = id, waves = visit, corstr = "ar1")
   estbeta_ar1[[s]] <- coef(gee_ar1)
   se_ar1[[s]] <- summary(gee_ar1)$coefficient[,2] 
@@ -256,7 +257,7 @@ matched_long <- matched_long %>%
                        unlist(relbias_ar1[[s]]), unlist(mse_ar1[[s]]), unlist(cp_ar1[[s]]))
   
   #4) unstructured
-  gee_unstr <- geeglm(root ~ visit + age + female + bsa_bl + bav:visit, data = simdat, family = gaussian,
+  gee_unstr <- geeglm(root ~ bav + visit + age + female + bsa_bl + bav:visit, data = simdat, family = gaussian,
                     id = id, waves = visit, corstr = "unstructured")
   estbeta_unstr[[s]] <- coef(gee_unstr)
   se_unstr[[s]] <- summary(gee_unstr)$coefficient[,2] 
@@ -356,11 +357,11 @@ matched_long <- matched_long %>%
 
 # output ----
 # 1)  entire cohort outcome
-names <- c("simnum", "sample_size", "(intercept)", "visit", "age","female", "bsa_bl", "visit:bav",
-           "SE(beta1)", "SE(beta2)", "SE(beta3)","SE(beta4)", "SE(beta5)", "SE(beta6)",
-           "RelBias(b1)","RelBias(b2)","RelBias(b3)", "RelBias(b4)","RelBias(b5)","RelBias(b6)",
-           "MSE(b1)","MSE(b2)","MSE(b3)","MSE(b4)","MSE(b5)","MSE(b6)",
-           "CovProb(b1)","CovProb(b2)","CovProb(b3)","CovProb(b4)","CovProb(b5)","CovProb(b6)")
+names <- c("simnum", "sample_size","(intercept)", "bav","visit", "age","female", "bsa_bl", "visit:bav",
+           "SE(beta1)", "SE(beta2)", "SE(beta3)","SE(beta4)", "SE(beta5)", "SE(beta6)", "SE(beta7)",
+           "RelBias(b1)","RelBias(b2)","RelBias(b3)", "RelBias(b4)","RelBias(b5)","RelBias(b6)", "RelBias(b7)",
+           "MSE(b1)","MSE(b2)","MSE(b3)","MSE(b4)","MSE(b5)","MSE(b6)","MSE(b7)",
+           "CovProb(b1)","CovProb(b2)","CovProb(b3)","CovProb(b4)","CovProb(b5)","CovProb(b6)","CovProb(b7)")
 
 outvec_ind <- do.call("rbind", outvec_ind)
 colnames(outvec_ind) <- names
@@ -372,26 +373,26 @@ outvec_unstr <- do.call("rbind", outvec_unstr)
 colnames(outvec_unstr) <- names
 
 outmean_ind <- c(simnum, colMeans(outvec_ind[,-1]), sd(outvec_ind[,3]),sd(outvec_ind[,4]),
-                 sd(outvec_ind[,5]),sd(outvec_ind[,6]),sd(outvec_ind[,7]),sd(outvec_ind[,8]))
+                 sd(outvec_ind[,5]),sd(outvec_ind[,6]),sd(outvec_ind[,7]),sd(outvec_ind[,8]),sd(outvec_ind[,9]))
 outmean_exch <- c(simnum,colMeans(outvec_exch[,-1]), sd(outvec_exch[,3]),sd(outvec_exch[,4]),
-                  sd(outvec_exch[,5]),sd(outvec_exch[,6]),sd(outvec_exch[,7]),sd(outvec_exch[,8]))
+                  sd(outvec_exch[,5]),sd(outvec_exch[,6]),sd(outvec_exch[,7]),sd(outvec_exch[,8]),sd(outvec_exch[,9]))
 outmean_ar1 <- c(simnum,colMeans(outvec_ar1[,-1]), sd(outvec_ar1[,3]),sd(outvec_ar1[,4]),
-                 sd(outvec_ar1[,5]),sd(outvec_ar1[,6]),sd(outvec_ar1[,7]),sd(outvec_ar1[,8]))
+                 sd(outvec_ar1[,5]),sd(outvec_ar1[,6]),sd(outvec_ar1[,7]),sd(outvec_ar1[,8]),sd(outvec_ar1[,9]))
 outmean_unstr <- c(simnum,colMeans(outvec_unstr[,-1]), sd(outvec_unstr[,3]),sd(outvec_unstr[,4]),
-                   sd(outvec_unstr[,5]),sd(outvec_unstr[,6]),sd(outvec_unstr[,7]),sd(outvec_unstr[,8]))
+                   sd(outvec_unstr[,5]),sd(outvec_unstr[,6]),sd(outvec_unstr[,7]),sd(outvec_unstr[,8]),sd(outvec_unstr[,9]))
 
-Model <- c("Independence",rep("",5),"Exchangeable",rep("",5), "AR(1)",rep("",5),"Unstructured",rep("",5))
+Model <- c("Independence",rep("",6),"Exchangeable",rep("",6), "AR(1)",rep("",6),"Unstructured",rep("",6))
 #Parameters <- rep(c("$\\beta_1$", "$\\beta_2$", "$\\beta_3$","$\\beta_4$","$\\beta_5$","$\\beta_6$"),4)
-Parameters <- rep(c("(intercept)","visit","age","female","bsa","visit:bav"),4)
-MeanEstimates <- c(outmean_ind[3:8], outmean_exch[3:8],outmean_ar1[3:8],outmean_unstr[3:8])
+Parameters <- rep(c("(intercept)","BAV","visit","age","female","bsa","visit:bav"),4)
+MeanEstimates <- c(outmean_ind[3:9], outmean_exch[3:9],outmean_ar1[3:9],outmean_unstr[3:9])
 TrueValues <- rep(beta_true,4)
-MeanSE <- c(outmean_ind[9:14], outmean_exch[9:14],outmean_ar1[9:14],outmean_unstr[9:14])
-SD <- c(outmean_ind[33:38], outmean_exch[33:38],outmean_ar1[33:38],outmean_unstr[33:38])
-MeanRelBias <- c(outmean_ind[15:20], outmean_exch[15:20],outmean_ar1[15:20],outmean_unstr[15:20])
-MSE <- c(outmean_ind[21:26], outmean_exch[21:26],outmean_ar1[21:26],outmean_unstr[21:26])
-CovProb <- c(outmean_ind[27:32], outmean_exch[27:32],outmean_ar1[27:32],outmean_unstr[27:32])
+MeanSE <- c(outmean_ind[10:16], outmean_exch[10:16],outmean_ar1[10:16],outmean_unstr[10:16])
+SD <- c(outmean_ind[38:44], outmean_exch[38:44],outmean_ar1[38:44],outmean_unstr[38:44])
+MeanRelBias <- c(outmean_ind[17:23], outmean_exch[17:23],outmean_ar1[17:23],outmean_unstr[17:23])
+MSE <- c(outmean_ind[24:30], outmean_exch[24:30],outmean_ar1[24:30],outmean_unstr[24:30])
+CovProb <- c(outmean_ind[31:37], outmean_exch[31:37],outmean_ar1[31:37],outmean_unstr[31:37])
 numout <- round(cbind(TrueValues, MeanEstimates, MeanSE, SD, MeanRelBias, MSE, CovProb),3)
-SampleSize <- rep(N, 24)
+SampleSize <- rep(N, 28)
 t <- data.frame(Model, SampleSize, Parameters, numout)
 
 out_t1 <- kableExtra::kable(t, row.names=FALSE, escape = FALSE,
