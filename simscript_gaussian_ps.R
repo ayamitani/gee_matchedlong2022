@@ -1,6 +1,6 @@
 ### generate big cohort 
 set.seed(2)
-simnum <- 100
+simnum <- 1000
 # total sample size
 N <- 250
 # total number of visits
@@ -13,25 +13,25 @@ id <- rep(1:N, each = maxT)
 # proportion of bav = 0 in hospital cohort
 pbav0 = 0.1
 
-# coef for baseline covariates (high overlap)
-b01 <- 6 # 4-->6
-b02 <- -0.1
-b03 <- -1.3
-b04 <- 1.5
-b11 <- 6 # 4-->6
-b12 <- -0.1
-b13 <- -1.3
-b14 <- 1.5
-# # coef for baseline covariates for bav = 0 (Moderate)
-# b01 <- 3
+# # coef for baseline covariates (high overlap)
+# b01 <- 6 # 4-->6
 # b02 <- -0.1
-# b03 <- -1.5
+# b03 <- -1.3
 # b04 <- 1.5
-# # coef for baseline covariates for bav = 1
-# b11 <- 6
+# b11 <- 6 # 4-->6
 # b12 <- -0.1
 # b13 <- -1.3
-# b14 <- 2
+# b14 <- 1.5
+# coef for baseline covariates for bav = 0 (Moderate)
+b01 <- 3.5 
+b02 <- -0.1
+b03 <- -2
+b04 <- 1.5
+# coef for baseline covariates for bav = 1
+b11 <- 6
+b12 <- -0.1
+b13 <- -1.5
+b14 <- 2
 # # coef for baseline covariates for bav = 0 (Minimal)
 # b01 <- 2 # 4-->6
 # b02 <- -0.2
@@ -458,6 +458,14 @@ out_t2 <- kableExtra::kable(t2, row.names=FALSE, escape = FALSE,
   #collapse_rows(columns = 1, valign = "middle") %>%
   row_spec(c(3,6,9,12,15), background = "lightgrey") %>%
   column_spec(1:2, background = "transparent") 
+
+result <- t2[c(3,6,9,12),c(-1,-3)]
+row.names(result) <- c("Independence","Exchangeable","AR(1)","Unstructured")
+kableExtra::kable(result,escape = FALSE,
+                  caption = "GEE models comparison for matched sample (BAV:Visit)",
+                  col.names = c("Sample","True value","Estimates","SE","SE(adjusted)",
+                                "SD","Relative bais","MSE","Coverage prob","Coverage prob(adjusted)")) %>%
+  kable_styling(full_width = F, position = "center")
 
 out_t1
 out_t2
