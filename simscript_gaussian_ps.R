@@ -13,25 +13,25 @@ id <- rep(1:N, each = maxT)
 # proportion of bav = 0 in hospital cohort
 pbav0 = 0.1
 
-# # coef for baseline covariates (high overlap)
-# b01 <- 6 # 4-->6
-# b02 <- -0.1
-# b03 <- -1.3
-# b04 <- 1.5
-# b11 <- 6 # 4-->6
-# b12 <- -0.1
-# b13 <- -1.3
-# b14 <- 1.5
-# coef for baseline covariates for bav = 0 (Moderate)
-b01 <- 3.5 
+# coef for baseline covariates (high overlap)
+b01 <- 6 # 4-->6
 b02 <- -0.1
-b03 <- -2
+b03 <- -1.3
 b04 <- 1.5
-# coef for baseline covariates for bav = 1
-b11 <- 6
+b11 <- 6 # 4-->6
 b12 <- -0.1
-b13 <- -1.5
-b14 <- 2
+b13 <- -1.3
+b14 <- 1.5
+# # coef for baseline covariates for bav = 0 (Moderate)
+# b01 <- 3.5
+# b02 <- -0.1
+# b03 <- -2
+# b04 <- 1.5
+# # coef for baseline covariates for bav = 1
+# b11 <- 6
+# b12 <- -0.1
+# b13 <- -1.5
+# b14 <- 2
 # # coef for baseline covariates for bav = 0 (Minimal)
 # b01 <- 2 # 4-->6
 # b02 <- -0.2
@@ -54,7 +54,7 @@ b6_r <- 2 #bsa baseline
 b7_r <- 0.5 #visit:bav
 beta_true <- cbind(b1_r, b2_r, b3_r, b4_r, b5_r, b6_r, b7_r)
 beta_true_s <- cbind(b1_r,b3_r,b7_r)
-p <- length(beta_true) # number of regression parameters
+p <- length(beta_true_s) # number of regression parameters
 
 # create lists for output(cohort)
 estbeta_ind <- vector("list", length = simnum)
