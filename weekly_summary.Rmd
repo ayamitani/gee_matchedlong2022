@@ -550,14 +550,32 @@ Feedback:
 **Questions**
 
 1. If I simulate the propensity scores for the 2 groups separetely but with the same original baseline covariates (b1...b4), the SD and MSE for unstructured model for matched sample will be smaller. Why?
+- Use this method, simulate the outcome for BAV and TAV separately with the same coefficients for high overlap scenario.
 
 2. if i modify the values for baseline covariates, the sample size will also change, how can i make sure we got 10% TAV?
 
 3. If we simulate the two groups with minimal overlapped propensity score distributions, then the matched sample may not have balanced baseline covariates, does it matter?
+- We want high/moderate/low overlap for the cohort, but still want high overlap for the matched pairs.
 
 4. The overlapping proportion for the high scenario is lower for the entire cohort (0.4, why?) but the sample distribution has much higher overlapping proportion.
 
-5. Presentation:
-  + should i only talk about the first simulation method? What about the 3 overlapping scenarios?
-  + Which table should i present and how to interpret the result?
-  + Do I still need to show the linear mixed model?
+  
+## April 3-7, 2023
+**Meeting on Apr 04**
+
+- Should include BAV (the main effect) and the baseline variables(age, female, bsa) when generating the outcome
+- For the cohort: fit gee models with bav*visit and the baseline varibales
+- For the matched sample: root = visit + bav:visit
+- Presentation: 
+  + Simulation cohort(process) & 3 overlap (plots) scenarioes
+  + show the relationship between bav, root, confounders(age,female,bsa)
+  + only show model results(just the interaction term) for the matched sample (4 gee models)
+
+**Accomplishment**
+
+1. Add the 3 baseline variables & BAV for generating outcome 
+2. Create presentation slides & output
+
+
+**Meeting on Apr 14**
+
