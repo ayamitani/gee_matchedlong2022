@@ -1,6 +1,6 @@
 library(overlapping)
 set.seed(2)
-simnum <- 100
+simnum <- 1000
 # total sample size
 N <- 250
 p <- 3 # number of regression parameters
@@ -21,37 +21,38 @@ overlap_sh <-rep(NA, simnum)
 overlap_sm <-rep(NA, simnum)
 overlap_sl <-rep(NA, simnum)
 
-# coef for baseline covariates (high overlap)
-b01_h <- 6 # 4-->6
-b02_h <- -0.1
-b03_h <- -1.3
-b04_h <- 1.5
-b11_h <- 6 # 4-->6
-b12_h <- -0.1
-b13_h <- -1.3
-b14_h <- 1.5
+# coef for baseline covariates for bav = 0 (high overlap)
+b01_h <- 2.2 
+b02_h <- -0.002
+b03_h <- -0.4
+b04_h <- 0.1
+# coef for bav = 1
+b11_h <- 2.2 
+b12_h <- -0.004
+b13_h <- -0.2
+b14_h <- 0.1
 
 # coef for baseline covariates for bav = 0 (moderate overlap)
-b01_m <- 3.5 #3
+b01_m <- 6
 b02_m <- -0.1
-b03_m <- -2#-1.5
+b03_m <- -1.3
 b04_m <- 1.5
 # coef for baseline covariates for bav = 1 (moderate overlap)
 b11_m <- 6 
 b12_m <- -0.1
-b13_m <- -1.5#-1.3
-b14_m <- 2
+b13_m <- -1.3
+b14_m <- 1.5
 
 # coef for baseline covariates for bav = 0 (low overlap)
-b01_l <- 2
-b02_l <- -0.2
-b03_l <- -1.5
-b04_l <- 1.5
+b01_l <- 2.7
+b02_l <- -0.25
+b03_l <- -1.2
+b04_l <- 6
 # coef for baseline covariates for bav = 1 (low overlap)
-b11_l <- 10
-b12_l <- -0.1
-b13_l <- -1.3
-b14_l <- 1.5
+b11_l <- 20 
+b12_l <- -0.2
+b13_l <- -6
+b14_l <- 0.3
 
 # coef for generating outcome values
 b1_r <- 20 #intercept
@@ -120,12 +121,12 @@ for (i in 1:simnum) {
   
   # Moderate overlap:--------------------------------------------------
   # baseline covariates
-  age0i <- rnorm(pbav0 * N, mean = 60, sd = 10)
-  female0i <- rbinom(pbav0 * N, size = 1, prob = 0.3)
-  bsa_bl0i <- rnorm(pbav0 * N, mean = 2, sd = 0.2)
-  age1i <- rnorm((1 - pbav0) * N, mean = 60, sd = 10)
-  female1i <- rbinom((1 - pbav0) * N, size = 1, prob = 0.3)
-  bsa_bl1i <- rnorm((1 - pbav0) * N, mean = 2, sd = 0.2)
+  # age0i <- rnorm(pbav0 * N, mean = 60, sd = 10)
+  # female0i <- rbinom(pbav0 * N, size = 1, prob = 0.3)
+  # bsa_bl0i <- rnorm(pbav0 * N, mean = 2, sd = 0.2)
+  # age1i <- rnorm((1 - pbav0) * N, mean = 60, sd = 10)
+  # female1i <- rbinom((1 - pbav0) * N, size = 1, prob = 0.3)
+  # bsa_bl1i <- rnorm((1 - pbav0) * N, mean = 2, sd = 0.2)
   
   ps0_xbeta <- b01_m + b02_m * age0i + b03_m * female0i + b04_m * bsa_bl0i
   pscore0 <- exp(ps0_xbeta)/ (1 + exp(ps0_xbeta))
@@ -175,12 +176,12 @@ for (i in 1:simnum) {
   
   # Low overlap:-------------------------------------------------------------
   # baseline covariates
-  age0i <- rnorm(pbav0 * N, mean = 60, sd = 10)
-  female0i <- rbinom(pbav0 * N, size = 1, prob = 0.3)
-  bsa_bl0i <- rnorm(pbav0 * N, mean = 2, sd = 0.2)
-  age1i <- rnorm((1 - pbav0) * N, mean = 60, sd = 10)
-  female1i <- rbinom((1 - pbav0) * N, size = 1, prob = 0.3)
-  bsa_bl1i <- rnorm((1 - pbav0) * N, mean = 2, sd = 0.2)
+  # age0i <- rnorm(pbav0 * N, mean = 60, sd = 10)
+  # female0i <- rbinom(pbav0 * N, size = 1, prob = 0.3)
+  # bsa_bl0i <- rnorm(pbav0 * N, mean = 2, sd = 0.2)
+  # age1i <- rnorm((1 - pbav0) * N, mean = 60, sd = 10)
+  # female1i <- rbinom((1 - pbav0) * N, size = 1, prob = 0.3)
+  # bsa_bl1i <- rnorm((1 - pbav0) * N, mean = 2, sd = 0.2)
   
   ps0_xbeta <- b01_l + b02_l * age0i + b03_l * female0i + b04_l * bsa_bl0i
   pscore0 <- exp(ps0_xbeta)/ (1 + exp(ps0_xbeta))
