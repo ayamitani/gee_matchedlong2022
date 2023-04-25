@@ -13,35 +13,38 @@ id <- rep(1:N, each = maxT)
 # proportion of bav = 0 in hospital cohort
 pbav0 = 0.1
 
-# coef for baseline covariates (high overlap)
-b01 <- 6 # 4-->6
-b02 <- -0.1
-b03 <- -1.3
-b04 <- 1.5
-b11 <- 6 # 4-->6
-b12 <- -0.1
-b13 <- -1.3
-b14 <- 1.5
-# # coef for baseline covariates for bav = 0 (Moderate)
-# b01 <- 3.5
+# coef for baseline covariates (High overlap)
+b01 <- 2.2
+b02 <- -0.002
+b03 <- -0.4
+b04 <- 0.1
+# for bav = 1
+b11 <- 2.2
+b12 <- -0.004
+b13 <- -0.2
+b14 <- 0.1
+
+# coef for baseline covariates for bav = 0 (Moderate)
+# b01 <- 6 # 4-->6
 # b02 <- -0.1
-# b03 <- -2
+# b03 <- -1.3
 # b04 <- 1.5
 # # coef for baseline covariates for bav = 1
-# b11 <- 6
-# b12 <- -0.1
-# b13 <- -1.5
-# b14 <- 2
-# # coef for baseline covariates for bav = 0 (Minimal)
-# b01 <- 2 # 4-->6
-# b02 <- -0.2
-# b03 <- -1.5
-# b04 <- 1.5
-# # coef for baseline covariates for bav = 1
-# b11 <- 10
+# b11 <- 6 # 4-->6
 # b12 <- -0.1
 # b13 <- -1.3
 # b14 <- 1.5
+
+# # coef for baseline covariates for bav = 0 (Minimal)
+# b01 <- 2.7
+# b02 <- -0.25
+# b03 <- -1.2
+# b04 <- 6
+# # coef for baseline covariates for bav = 1
+# b11 <- 20
+# b12 <- -0.2
+# b13 <- -6
+# b14 <- 0.3
 
 
 # coef for generating outcome values
@@ -459,14 +462,16 @@ out_t2 <- kableExtra::kable(t2, row.names=FALSE, escape = FALSE,
   row_spec(c(3,6,9,12,15), background = "lightgrey") %>%
   column_spec(1:2, background = "transparent") 
 
-result <- t2[c(3,6,9,12),c(-1,-3)]
+result <- t2[c(3,6,9,12),c(-1,-3,-6,-9,-10,-11)]
 row.names(result) <- c("Independence","Exchangeable","AR(1)","Unstructured")
-kableExtra::kable(result,escape = FALSE,
-                  caption = "GEE models comparison for matched sample (BAV:Visit)",
-                  col.names = c("Sample","True value","Estimates","SE","SE(adjusted)",
-                                "SD","Relative bais","MSE","Coverage prob","Coverage prob(adjusted)")) %>%
+init_out <- kableExtra::kable(result,escape = FALSE,
+                              caption = "GEE models comparison for matched sample (BAV:Visit)",
+                              col.names = c("Sample size","True value","Estimates","SE(DF-corrected)",
+                                            "SD","Coverage prob")) %>%
   kable_styling(full_width = F, position = "center")
 
-out_t1
-out_t2
+init_out
+
+# out_t1
+# out_t2
 
