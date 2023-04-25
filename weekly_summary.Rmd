@@ -576,6 +576,16 @@ Feedback:
 1. Add the 3 baseline variables & BAV for generating outcome 
 2. Create presentation slides & output
 
-
+## April 10-21, 2023
 **Meeting on Apr 14**
+
+- Modify the presentation slides
+
+**Meeting on Apr 18**
+
+- Generate high overlap propensity scores by letting the coefficient for intercept be 2.2, and let other coefficients close to 0.
+- Try to generate minimal overlap distributions
+- Verify the caculation for QLS with respect to $\tau$
+
+
 
