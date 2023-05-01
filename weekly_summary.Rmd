@@ -588,4 +588,17 @@ Feedback:
 - Verify the caculation for QLS with respect to $\tau$
 
 
+## April 24-28, 2023
+
+**No meeting (email)**
+
+**Accomplishment**
+
+1. work on the algebra with the alpha estimates for the AR1 structure
+2. create poster slide for Biostatistics research day
+
+
+## May 1-5, 2023
+**Meeting on May 2**
+
 
