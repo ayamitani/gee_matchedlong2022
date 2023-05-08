@@ -425,15 +425,15 @@ colnames(outvec_unstrs) <- names1
 outvec_lme <- do.call("rbind", outvec_lme)
 colnames(outvec_lme) <- names1
 
-outmean_inds <- c(simnum,colMeans(outvec_inds[,-1]), sd(outvec_inds[,3]),
-                  sd(outvec_inds[,4]),sd(outvec_inds[,5]))
-outmean_exchs <- c(simnum,colMeans(outvec_exchs[,-1]),sd(outvec_exchs[,3]),
+outmean_inds <- c(simnum,median(outvec_inds[,2]), colMeans(outvec_inds[,c(-1,-2)]), 
+                  sd(outvec_inds[,3]), sd(outvec_inds[,4]),sd(outvec_inds[,5]))
+outmean_exchs <- c(simnum,median(outvec_exchs[,2]),colMeans(outvec_exchs[,c(-1,-2)]),sd(outvec_exchs[,3]),
                    sd(outvec_exchs[,4]),sd(outvec_exchs[,5]))
-outmean_ar1s <- c(simnum,colMeans(outvec_ar1s[,-1]),sd(outvec_ar1s[,3]),
+outmean_ar1s <- c(simnum,median(outvec_ar1s[,2]),colMeans(outvec_ar1s[,c(-1,-2)]),sd(outvec_ar1s[,3]),
                   sd(outvec_ar1s[,4]),sd(outvec_ar1s[,5]))
-outmean_unstrs <- c(simnum,colMeans(outvec_unstrs[,-1]),sd(outvec_unstrs[,3]),
+outmean_unstrs <- c(simnum,median(outvec_unstrs[,2]),colMeans(outvec_unstrs[,c(-1,-2)]),sd(outvec_unstrs[,3]),
                     sd(outvec_unstrs[,4]),sd(outvec_unstrs[,5]))
-outmean_lme <- c(simnum, colMeans(outvec_lme[,-1]), sd(outvec_lme[,3]),
+outmean_lme <- c(simnum,median(outvec_lme[,2]), colMeans(outvec_lme[,c(-1,-2)]), sd(outvec_lme[,3]),
                  sd(outvec_lme[,4]),sd(outvec_lme[,5]))
 
 Model <- c("Independence","","","Exchangeable","","", "AR(1)","","","Unstructured","","",
@@ -465,12 +465,13 @@ out_t2 <- kableExtra::kable(t2, row.names=FALSE, escape = FALSE,
 result <- t2[c(3,6,9,12),c(-1,-3,-6,-9,-10,-11)]
 row.names(result) <- c("Independence","Exchangeable","AR(1)","Unstructured")
 init_out <- kableExtra::kable(result,escape = FALSE,
-                              caption = "GEE models comparison for matched sample (BAV:Visit)",
-                              col.names = c("Sample size","True value","Estimates","SE(DF-corrected)",
-                                            "SD","Coverage prob")) %>%
+                              caption = "GEE models comparison for matched sample from 1000 simulations (BAV:Visit)",
+                              col.names = c("Median sample size","True Value","Mean Est","Mean SE",
+                                            "Emp SE","Cov Prob")) %>%
   kable_styling(full_width = F, position = "center")
 
 init_out
+
 
 # out_t1
 # out_t2
