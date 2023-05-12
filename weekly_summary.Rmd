@@ -601,4 +601,35 @@ Feedback:
 ## May 1-5, 2023
 **Meeting on May 2**
 
+- confirmed the solution for $\alpha$ and $\tau$ for the AR1 structure
+  + Next step: type out the algebra using Latex and try to write the code (similar to the code in CWGEE package)
+  + Start from the regular GEE with AR(1) -> initial $\beta$ and $\alpha$ estimates -> use the inital $\beta$ estimates to calculate $Z$ -> estimate $\tau$ -> estimate $\alpha$ -> estimate $\beta$, run these steps iteratively until convergence
+- Next: the algebra for Exchangeable & independent(easy, don't need to estimate $\alpha$) correlation for $R_i$
+- Modified poster slide 
+  
+**Accomplishment**
+
+1. Submit the abstract and poster for the Biostatistics Research Day
+2. work on the algebra with the alpha estimates for the exchangeable structure
+3. construct the R functions for two stage alpha and tau estimates
+
+
+## May 8-12, 2023
+**Meeting on May 9**
+
+QLS algorithm:
+1. Use `geeglm` to get the initial beta and alpha ($\alpha_0$) estimates, use these to estimate $\tau_0$
+2. Use $\alpha_0$ & $\tau_0$ to construct $F_i = Q_i \otimes R_i$, fit `geeglm` and get updated beta estimates
+3. plug $\hat \beta$ into alpha and tau estimate to get the updated $\alpha_0$ and $\tau_0$
+4. Run the above steps until converge, and get stage 2 estimates for alpha and tau
+5. fit geeglm and get the final beta estimates
+
+
+**Problems**
+
+1.The `Z` (residuals) are the same for the geeglm models with different correlation structures, then how to get the updated alpha and tau from the beta estimates?
+
+2. When I specify "corstr = "fixed",zcor = zcor", the alpha estimates from the model is 1. 
+
+
 
