@@ -210,29 +210,23 @@ ar1_cor <- function(rho,n) {
 qls <- function(formula, data, subject_id, cluster_id , cluster.var, time.var, time.str){
   iter <- 0
   bdiff <- 1
-  alpha0  <- 0 # initial alpha estimate?
+  alpha0  <- 0 # initial alpha estimate
   n <- length(unique(time.var)) # assume balanced time points
   
   # use independent GEE to get initial beta estimates 
   init_mod <- geeglm(formula = formula, data = data, family = gaussian,
-                     id = subject_id, waves = visit,corstr = "independence") #corstr ? 
+                     id = subject_id, waves = visit,corstr = "independence") 
   #summary(init_mod)
   beta0 <- as.vector(coef(init_mod))
-  Z0 <- init_mod$residuals
+  Z0 <- residuals(init_mod,"pearson") #init_mod$residuals
   
-  while(abs(bdiff) > .00000001){
-    
-    # compute initial tau estimate
-    if (time.str == "ind") {Rinv <- solve(diag(n))} # n=5 
-    if (time.str == "ar1") {Rinv <- solve(ar1_cor(alpha0, n))} #{Rinv <- solve(toeplitz(alpha0^(0:(n-1))))}
-    if (time.str == "exch") {Rinv <- solve(exch_cor(alpha0, n))}
-    tau0 <- esttau1_exch(mdat=data, Z = Z0, Rinv = Rinv,nvisits = n) 
-    
-    # update alpha0 with tau0
-    # Qinv <- solve(exch_cor(tau0, 2))
-    # if (time.str == "ind") {alpha0 <- alpha0}
-    # if (time.str == "ar1") {alpha0 <- estalpha1_ar1(mdat=data, Z=Z0, Qinv=Qinv, nvisits = n)}
-    # if (time.str == "exch") {alpha0 <- estalpha1_exch(mdat=data, Z=Z0, Qinv=Qinv, nvisits = n)}
+  # compute initial tau estimate
+  if (time.str == "ind") {Rinv <- solve(diag(n))} # n=5 
+  if (time.str == "ar1") {Rinv <- solve(ar1_cor(alpha0, n))} 
+  if (time.str == "exch") {Rinv <- solve(exch_cor(alpha0, n))}
+  tau0 <- esttau1_exch(mdat=data, Z = Z0, Rinv = Rinv,nvisits = n) 
+  
+  while(max(abs(bdiff)) > .00000001){
     
     # update beta estimates with alpha0, tau0
     Qi <- exch_cor(tau0,2) 
@@ -240,20 +234,20 @@ qls <- function(formula, data, subject_id, cluster_id , cluster.var, time.var, t
     if (time.str == "ar1") {Ri <- ar1_cor(alpha0, n)} 
     if (time.str == "exch") {Ri <- exch_cor(alpha0, n)}
     Fi <- kronecker(Qi,Ri)
-    zcor <- fixed2Zcor(Fi, id=data$cluster_id, waves=data$order) #waves=data$visit?
+    zcor <- fixed2Zcor(Fi, id=data$cluster_id, waves=data$order) # ？ 
     mod1 <- geeglm(formula = formula, data = matched_pair, family = gaussian,
-                   id = cluster_id,corstr = "fixed",zcor = zcor)
+                   id = cluster_id,corstr = "userdefined",zcor = zcor)
     #summary(mod1)
     beta1 <- as.vector(coef(mod1))
-    bdiff <- beta1[3] - beta0[3]
+    bdiff <- beta1 - beta0
     
     # update tau0
-    Z1 <- mod1$residuals
+    Z1 <- residuals(mod1,"pearson") #mod1$residuals
     if (time.str == "ind") {Rinv <- solve(diag(n))}
-    if (time.str == "ar1") {Rinv <- solve(ar1_cor(alpha0, n))} #{Rinv <- solve(toeplitz(alpha0^(0:(n-1))))}
+    if (time.str == "ar1") {Rinv <- solve(ar1_cor(alpha0, n))} 
     if (time.str == "exch") {Rinv <- solve(exch_cor(alpha0, n))}
-    tau0 <- esttau1_exch(mdat=data, Z = Z1, Rinv = Rinv,nvisits = 5) #let n = 5
-    # update alpha0 (inital alpha0 for the next iteration)
+    tau0 <- esttau1_exch(mdat=data, Z = Z1, Rinv = Rinv,nvisits = n) 
+    # update alpha0 (initial alpha0 for the next iteration)
     Qinv <- solve(exch_cor(tau0, 2))
     if (time.str == "ind") {alpha0 <- alpha0}
     if (time.str == "ar1") {alpha0 <- estalpha1_ar1(mdat=data, Z=Z1, Qinv=Qinv, nvisits = n)}
@@ -264,7 +258,7 @@ qls <- function(formula, data, subject_id, cluster_id , cluster.var, time.var, t
     print(paste("iter:", iter, sep = " "))
     print(paste("alpha0:",alpha0, sep = " "))
     print(paste("tau0:",as.numeric(tau0), sep = " "))
-    print(paste("bdiff:",bdiff, sep = " "))
+    print(paste("bdiff:",max(abs(bdiff)), sep = " "))
   }
   
   # after converge, get stage 2 estimates
@@ -276,12 +270,12 @@ qls <- function(formula, data, subject_id, cluster_id , cluster.var, time.var, t
   # obtain final beta estimates
   Qi <- exch_cor(tau2,2)
   if (time.str == "ind") {Ri <- diag(n)}
-  if (time.str == "ar1") {Ri <- ar1_cor(alpha2, n)}#{Ri <- toeplitz(alpha2^(0:(n-1)))}
+  if (time.str == "ar1") {Ri <- ar1_cor(alpha2, n)}
   if (time.str == "exch") {Ri <- exch_cor(alpha2, n)}
   Fi <- kronecker(Qi,Ri)
-  zcor <- fixed2Zcor(Fi, id=data$cluster_id, waves=data$order) #waves=data$visit
+  zcor <- fixed2Zcor(Fi, id=data$cluster_id, waves=data$order) 
   mod <- geeglm(formula = formula, data = data, family = gaussian,
-                id = cluster_id,corstr = "fixed", zcor = zcor)
+                id = cluster_id,corstr = "userdefined", zcor = zcor)
   beta <- as.vector(coef(mod))
   se <- summary(mod)$coefficient[,2] 
   
