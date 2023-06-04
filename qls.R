@@ -209,8 +209,8 @@ ar1_cor <- function(rho,n) {
 #------------------------------------------------------------
 qls <- function(formula, data, subject_id, cluster_id , cluster.var, time.var, time.str){
   iter <- 0
-  bdiff <- 1
-  alpha0  <- 0 # initial alpha estimate
+  bdiff <- c(1,1,1)
+  alpha0  <- 0.1 # initial alpha estimate
   n <- length(unique(time.var)) # assume balanced time points
   
   # use independent GEE to get initial beta estimates 
@@ -236,7 +236,7 @@ qls <- function(formula, data, subject_id, cluster_id , cluster.var, time.var, t
     Fi <- kronecker(Qi,Ri)
     zcor <- fixed2Zcor(Fi, id=data$cluster_id, waves=data$order) # ？ 
     mod1 <- geeglm(formula = formula, data = matched_pair, family = gaussian,
-                   id = cluster_id,corstr = "userdefined",zcor = zcor)
+                   id = cluster_id,corstr = "fixed",zcor = zcor)
     #summary(mod1)
     beta1 <- as.vector(coef(mod1))
     bdiff <- beta1 - beta0
@@ -275,7 +275,7 @@ qls <- function(formula, data, subject_id, cluster_id , cluster.var, time.var, t
   Fi <- kronecker(Qi,Ri)
   zcor <- fixed2Zcor(Fi, id=data$cluster_id, waves=data$order) 
   mod <- geeglm(formula = formula, data = data, family = gaussian,
-                id = cluster_id,corstr = "userdefined", zcor = zcor)
+                id = cluster_id,corstr = "fixed", zcor = zcor)
   beta <- as.vector(coef(mod))
   se <- summary(mod)$coefficient[,2] 
   
