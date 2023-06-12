@@ -629,7 +629,51 @@ QLS algorithm:
 
 1.The `Z` (residuals) are the same for the geeglm models with different correlation structures, then how to get the updated alpha and tau from the beta estimates?
 
-2. When I specify "corstr = "fixed",zcor = zcor", the alpha estimates from the model is 1. 
+2. When I specify "corstr = "fixed",zcor = zcor", the alpha estimates from the model is 1.
+
+3. For independent GEE, the bias was ever larger when I increased the sample size.
 
 
+**No meeting during May 15 - May 19 **
 
+## May 22-26, 2023
+**Meeting on May 23**
+
+- Add "bav" in the model and compare results.
+- Look at the mean standardized difference for root between BAV=0 and BAV=1.
+- Try bi <- rnorm(N,mean=0,sd) with sd equals 0, 0.5, 1, 2 instead of 5.
+  + Expect: with sd = 0, the independent GEE should perform well.
+- QLS: specify "zcor" using genZcor
+
+**Problems**
+
+1. How to use "genZcor"? It doesn't use any specified correlation matrix.
+  + I think we should still use "fixed2Zcor" since we have a fixed working correlation matrix which is the kronecker product of the two matrices.
+  
+2. Initial value for alpha should not be 0.
+
+3. Do we need to apply DF-corrected SE for qls estimates? --> Yes.
+
+4. Independent QLS  still highly biased, and the coverage probabilities are lower than GEE for all working correlation structures.
+
+
+**No meeting during May 29 - June 2**
+
+## June 5-9, 2023
+**Meeting on June 8**
+
+1) GEE: Try large sample (N=2000) with different "sd" for random effect
+
+2) Calculate std. difference for the cohort, if we simulate the data right, this should be greater than the std. difference of root for the matched sample
+  + the difference for the cohort is smaller than the sample: this might be because the matching process results in a lot of unmatched subjects (since we set pbav0 = 0.1 and many patients with BAV=1 were unmatched)
+  
+3) Look at the trajectories of mean root dimension for cohort & sample
+
+4) Try QLS with different sd & calculate mean and empirical SE for alpha and tau estimates
+ (Use DF-corrected SE for QLS (also CI))
+ 
+- Fit QLS to original data set and get alpha and tau estimates, fit GEE to get alpha estimate
+ + Problem: in the original data set each patient has difference number of measurements, but i assumed balanced time points in the QLS related functions.
+ 
+ 
+## June 12-16, 2023
