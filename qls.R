@@ -23,9 +23,9 @@ library(kableExtra)
 library(tidyr)
 library(overlapping)
 
-#------------------------------------------------------------
+#____________________________________________________________
 # function to estimate stage 1 alpha for ar1 structure
-#------------------------------------------------------------
+#____________________________________________________________
 # `mdat`: a data frame containing the longitudinal data, with columns for the pair ID, 
 #     cluster variable, time variable, and outcome variable.
 # `id`: a vector of pair IDs.
@@ -76,9 +76,9 @@ estalpha1_ar1 <- function(mdat, Z, Qinv, nvisits) {
 
 
 
-#------------------------------------------------------------
+#____________________________________________________________
 # function to estimate stage 2 alpha for ar1 structure
-#------------------------------------------------------------
+#____________________________________________________________
 
 estalpha2_ar1 <- function(alpha0){
   alpha <- as.numeric( 2 * alpha0 / ( 1 + alpha0 ^ 2 ) )
@@ -88,9 +88,9 @@ estalpha2_ar1 <- function(alpha0){
 
 
 
-#------------------------------------------------------------
+#____________________________________________________________
 # function to estimate stage 1 alpha for exchangeable structure
-#------------------------------------------------------------
+#____________________________________________________________
 estalpha1_exch <- function(mdat, Z, Qinv, nvisits){
   match.call()
   alphafun <- function(alpha){
@@ -138,9 +138,9 @@ estalpha1_exch <- function(mdat, Z, Qinv, nvisits){
 }
 
 
-#------------------------------------------------------------
+#____________________________________________________________
 # function to estimate stage 2 alpha for exch structure
-#------------------------------------------------------------
+#____________________________________________________________
 
 estalpha2_exch <- function(alpha0, mdat){
   
@@ -170,9 +170,9 @@ estalpha2_exch <- function(alpha0, mdat){
 
 
 
-#------------------------------------------------------------
+#____________________________________________________________
 # function to estimate stage 1 tau for exchangeable structure
-#------------------------------------------------------------
+#____________________________________________________________
 esttau1_exch <- function(mdat, Z, Rinv,nvisits){
   Fa <- Fb <- 0
   for (i in mdat$cluster_id){
@@ -192,9 +192,9 @@ esttau1_exch <- function(mdat, Z, Rinv,nvisits){
   return(tau0)
 }
 
-#------------------------------------------------------------
+#____________________________________________________________
 # function to estimate stage 2 tau for exchangeable structure
-#------------------------------------------------------------
+#____________________________________________________________
 esttau2_exch <- function(tau0){
   tau <- as.numeric( 2 * tau0 / ( 1 + tau0 ^ 2 ) )
   return(tau)
@@ -202,9 +202,9 @@ esttau2_exch <- function(tau0){
 
 
 
-#------------------------------------------------------------
-# function for exchangeable correlaiton structure
-#------------------------------------------------------------
+#____________________________________________________________
+# function for exchangeable correlation structure
+#____________________________________________________________
 exch_cor <- function(rho, n) {
   # Create an nxn matrix filled with tau
   cor_matrix <- matrix(rho, n, n)
@@ -213,9 +213,9 @@ exch_cor <- function(rho, n) {
   return(cor_matrix)
 }
 
-#------------------------------------------------------------
+#____________________________________________________________
 # function for ar1 correlation structure
-#------------------------------------------------------------
+#____________________________________________________________
 
 ar1_cor <- function(rho,n) {
   rho <- as.numeric(rho)
@@ -226,11 +226,10 @@ ar1_cor <- function(rho,n) {
 
 
 
-#------------------------------------------------------------
+#____________________________________________________________
 # function to fit QLS
-#------------------------------------------------------------
-qls <- function(
-    formula, data, subject_id, cluster_id , cluster.var, time.var, time.str){
+#____________________________________________________________
+qls <- function(formula, data, subject_id, cluster_id , cluster.var, time.var, time.str){
   iter <- 0
   bdiff <- c(1,1,1)
   alpha0  <- 0.1 # initial alpha estimate
@@ -315,9 +314,9 @@ qls <- function(
 }
 
 
-#------------------------------------------------------------
+#____________________________________________________________
 # function to calculate 95% CI for qls estiamtes
-#------------------------------------------------------------
+#____________________________________________________________
 qls_ci <- function(model, level = 0.95) {
   # Calculate the lower and upper bounds of the confidence interval for each parameter
   lower <- model$coefficients - qnorm(1-(1-0.95)/2) * model$se
@@ -337,7 +336,7 @@ adj_qls_ci <- function(model, N, level = 0.95) {
 }
 
 
-#------------------------------------------------------------
+#____________________________________________________________
 ### generate big cohort 
 set.seed(2)
 simnum <- 1000
@@ -440,7 +439,7 @@ for (s in 1:simnum) {
   bav <- rep(bavi, each = maxT)
   
   # generate outcome values
-  bi <- rnorm(N, mean = 0, sd = 0) #----bi sd=0/0.5/1/2/5--------
+  bi <- rnorm(N, mean = 0, sd = 5)
   b <- rep(bi, each = maxT)
   e <- rnorm(N*maxT, mean = 0, sd = 1)
   # add the confounders (age, female, bsa_bl)
@@ -448,7 +447,7 @@ for (s in 1:simnum) {
   
   simdat <- as.data.frame(cbind(id, visit, age, female, bsa_bl, bav, root))
   
-  # * Matching----
+  # Matching----
   # create sample data by matching patients based on ps
   simdat_base <- simdat %>% group_by(id) %>% slice(1)
   ps <- glm(bav ~ age + female + bsa_bl, family = binomial, data = simdat_base)
@@ -595,12 +594,9 @@ out_tab <- kableExtra::kable(tab, row.names=FALSE, escape = FALSE,
 
 result <- tab[c(3,6,9),c(-1,-3,-6,-9,-10,-11)]
 row.names(result) <- c("Independence","Exchangeable","AR(1)")
-init_out <- kableExtra::kable(result,escape = FALSE,
+partial_out <- kableExtra::kable(result,escape = FALSE,
                               caption = "QLS models comparison for matched sample from 1000 simulations (BAV:Visit)",
                               col.names = c("Median sample size","True Value","Mean Est","Mean SE",
                                             "Emp SE","Cov Prob","Mean alpha","Emp SE alpha","Mean tau","Emp SE tau")) %>%
   kable_styling(full_width = F, position = "center")
-
-#saveRDS(out_tab, "res_all.RDS")
-saveRDS(init_out, "qls_sd0.RDS")
 
