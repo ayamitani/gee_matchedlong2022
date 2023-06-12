@@ -1,3 +1,27 @@
+library(MASS)
+library(tidyverse)
+library(here)
+library(table1)
+library(corrplot)
+library(lme4)
+#library(texreg)
+library(coda)
+library(doBy)
+library(foreign)
+library(nlme)
+library(stats)
+library(mgcv)
+library(sn)
+#library(R2WinBUGS)
+library(geepack)
+library(survival)
+library(optmatch)
+library(cobalt)
+library(gee)
+library(knitr)
+library(kableExtra)
+library(tidyr)
+library(overlapping)
 
 #------------------------------------------------------------
 # function to estimate stage 1 alpha for ar1 structure
@@ -11,7 +35,6 @@
 estalpha1_ar1 <- function(mdat, Z, Qinv, nvisits) {
   Fa <- Fb <- 0
   for (i in mdat$cluster_id) { # for each pair
-    #cveci <- unique(mdat[mdat$subject_id == i,]$cluster.var) #(1,2) 2 subejcts in each pair
     S1_j <- S2_j <- S1_ja <- S1_jb <- 0
     Z_i1 <- Z[mdat$cluster_id == i & mdat$cluster.var == 1]
     matZ_i1 <- matrix(Z_i1, nrow = nvisits) 
@@ -73,7 +96,6 @@ estalpha1_exch <- function(mdat, Z, Qinv, nvisits){
   alphafun <- function(alpha){
     GG1 <- GG2 <- 0
     for (i in mdat$cluster_id){
-      #cveci <- unique(mdat[mdat$cluster_id == i,]$cluster.var) #(1,2) 2 subejcts in each pair
       GG1j <- GG2j <- 0
       Z_i1 <- Z[mdat$cluster_id == i & mdat$cluster.var == 1]
       matZ_i1 <- matrix(Z_i1, nrow = nvisits) 
@@ -192,7 +214,7 @@ exch_cor <- function(rho, n) {
 }
 
 #------------------------------------------------------------
-# function for ar1 correlaiton structure
+# function for ar1 correlation structure
 #------------------------------------------------------------
 
 ar1_cor <- function(rho,n) {
@@ -207,7 +229,8 @@ ar1_cor <- function(rho,n) {
 #------------------------------------------------------------
 # function to fit QLS
 #------------------------------------------------------------
-qls <- function(formula, data, subject_id, cluster_id , cluster.var, time.var, time.str){
+qls <- function(
+    formula, data, subject_id, cluster_id , cluster.var, time.var, time.str){
   iter <- 0
   bdiff <- c(1,1,1)
   alpha0  <- 0.1 # initial alpha estimate
@@ -234,8 +257,8 @@ qls <- function(formula, data, subject_id, cluster_id , cluster.var, time.var, t
     if (time.str == "ar1") {Ri <- ar1_cor(alpha0, n)} 
     if (time.str == "exch") {Ri <- exch_cor(alpha0, n)}
     Fi <- kronecker(Qi,Ri)
-    zcor <- fixed2Zcor(Fi, id=data$cluster_id, waves=data$order) # ？ 
-    mod1 <- geeglm(formula = formula, data = matched_pair, family = gaussian,
+    zcor <- fixed2Zcor(Fi, id=data$cluster_id, waves=data$order) 
+    mod1 <- geeglm(formula = formula, data = data, family = gaussian,
                    id = cluster_id,corstr = "fixed",zcor = zcor)
     #summary(mod1)
     beta1 <- as.vector(coef(mod1))
@@ -249,7 +272,7 @@ qls <- function(formula, data, subject_id, cluster_id , cluster.var, time.var, t
     tau0 <- esttau1_exch(mdat=data, Z = Z1, Rinv = Rinv,nvisits = n) 
     # update alpha0 (initial alpha0 for the next iteration)
     Qinv <- solve(exch_cor(tau0, 2))
-    if (time.str == "ind") {alpha0 <- alpha0}
+    if (time.str == "ind") {alpha0 <- 0}
     if (time.str == "ar1") {alpha0 <- estalpha1_ar1(mdat=data, Z=Z1, Qinv=Qinv, nvisits = n)}
     if (time.str == "exch") {alpha0 <- estalpha1_exch(mdat=data, Z=Z1, Qinv=Qinv, nvisits = n)}
     
@@ -278,6 +301,7 @@ qls <- function(formula, data, subject_id, cluster_id , cluster.var, time.var, t
                 id = cluster_id,corstr = "fixed", zcor = zcor)
   beta <- as.vector(coef(mod))
   se <- summary(mod)$coefficient[,2] 
+  vcov <- vcov(mod)
   
   fit <- list()
   fit$call <- match.call()
@@ -286,10 +310,31 @@ qls <- function(formula, data, subject_id, cluster_id , cluster.var, time.var, t
   fit$alpha <- alpha2
   fit$tau <- tau2
   fit$niter <- iter
+  fit$vcov <- vcov(mod)
   fit
 }
 
 
+#------------------------------------------------------------
+# function to calculate 95% CI for qls estiamtes
+#------------------------------------------------------------
+qls_ci <- function(model, level = 0.95) {
+  # Calculate the lower and upper bounds of the confidence interval for each parameter
+  lower <- model$coefficients - qnorm(1-(1-0.95)/2) * model$se
+  upper <- model$coefficients + qnorm(1-(1-0.95)/2) * model$se
+  results <- data.frame(lower = lower, upper = upper)
+  return(results)
+}
+
+adj_qls_ci <- function(model, N, level = 0.95) {
+  # Calculate the adjusted standard errors using DF-corrected sandwich estimator
+  adj_se <- sqrt(diag((N/(N-p))*model$vcov))
+  # Calculate the lower and upper bounds of the confidence interval for each parameter
+  lower <- model$coefficients - qnorm(1-(1-0.95)/2) * adj_se
+  upper <- model$coefficients + qnorm(1-(1-0.95)/2) * adj_se
+  results <- data.frame(lower = lower, upper = upper)
+  return(results)
+}
 
 
 #------------------------------------------------------------
@@ -308,7 +353,7 @@ id <- rep(1:N, each = maxT)
 # proportion of bav = 0 in hospital cohort
 pbav0 = 0.1
 
-# coef for baseline covariates for bav = 0 (Moderate)
+# coef for baseline covariates for bav = 0 (Moderate overlap)
 b01 <- 6 # 4-->6
 b02 <- -0.1
 b03 <- -1.3
@@ -331,78 +376,231 @@ beta_true <- cbind(b1_r, b2_r, b3_r, b4_r, b5_r, b6_r, b7_r)
 beta_true_s <- cbind(b1_r,b3_r,b7_r)
 p <- length(beta_true_s) # number of regression parameters
 
+
+estbeta_ind <- vector("list", length = simnum)
+estbeta_exch <- vector("list", length = simnum)
+estbeta_ar1 <- vector("list", length = simnum)
+se_ind <- vector("list", length = simnum)
+se_exch <- vector("list", length = simnum)
+se_ar1 <- vector("list", length = simnum)
+dfse_ind <- vector("list", length = simnum)
+dfse_exch <- vector("list", length = simnum)
+dfse_ar1 <- vector("list", length = simnum)
+relbias_ind <- vector("list", length = simnum) # Relative bias
+relbias_exch <- vector("list", length = simnum)
+relbias_ar1 <- vector("list", length = simnum)
+mse_ind <- vector("list", length = simnum) # MSE
+mse_exch <- vector("list", length = simnum)
+mse_ar1 <- vector("list", length = simnum)
+cp_ind <- vector("list", length = simnum) # list for for calculating coverage probability
+cp_exch <- vector("list", length = simnum)
+cp_ar1 <- vector("list", length = simnum)
+ccp_ind <- vector("list", length = simnum)
+ccp_exch <- vector("list", length = simnum)
+ccp_ar1 <- vector("list", length = simnum)
+outvec_ind <- vector("list", length = simnum)
+outvec_exch <- vector("list", length = simnum)
+outvec_ar1 <- vector("list", length = simnum)
+
+alpha_ind <- rep(NA, simnum)
+tau_ind <- rep(NA, simnum)
+alpha_ar1 <- rep(NA, simnum)
+tau_ar1 <- rep(NA, simnum)
+alpha_exch <- rep(NA, simnum)
+tau_exch <- rep(NA, simnum)
+
+set.seed(2)
 #Simulation----
-# baseline covariates
-age0i <- rnorm(pbav0 * N, mean = 60, sd = 10)
-female0i <- rbinom(pbav0 * N, size = 1, prob = 0.3)
-bsa_bl0i <- rnorm(pbav0 * N, mean = 2, sd = 0.2)
+for (s in 1:simnum) {
+  
+  # baseline covariates
+  age0i <- rnorm(pbav0 * N, mean = 60, sd = 10)
+  female0i <- rbinom(pbav0 * N, size = 1, prob = 0.3)
+  bsa_bl0i <- rnorm(pbav0 * N, mean = 2, sd = 0.2)
+  
+  age1i <- rnorm((1 - pbav0) * N, mean = 60, sd = 10)
+  female1i <- rbinom((1 - pbav0) * N, size = 1, prob = 0.3)
+  bsa_bl1i <- rnorm((1 - pbav0) * N, mean = 2, sd = 0.2)
+  
+  ps0_xbeta <- b01 + b02 * age0i + b03 * female0i + b04 * bsa_bl0i
+  pscore0 <- exp(ps0_xbeta)/ (1 + exp(ps0_xbeta))
+  ps1_xbeta <- b11 + b12 * age1i + b13 * female1i + b14 * bsa_bl1i
+  pscore1 <- exp(ps1_xbeta)/ (1 + exp(ps1_xbeta))
+  ps_xbeta <- c(ps0_xbeta,ps1_xbeta)
+  pscore <- c(pscore0, pscore1)
+  bavi <- rbinom(N, size = 1, prob = pscore)
+  
+  # repeat baseline covariates maxT times
+  agei <- c(age0i, age1i)
+  femalei <- c(female0i, female1i)
+  bsa_bli <- c(bsa_bl0i, bsa_bl1i)
+  age <- rep(agei, each = maxT)
+  female <- rep(femalei, each = maxT)
+  bsa_bl <- rep(bsa_bli, each = maxT)
+  bav <- rep(bavi, each = maxT)
+  
+  # generate outcome values
+  bi <- rnorm(N, mean = 0, sd = 0) #----bi sd=0/0.5/1/2/5--------
+  b <- rep(bi, each = maxT)
+  e <- rnorm(N*maxT, mean = 0, sd = 1)
+  # add the confounders (age, female, bsa_bl)
+  root <- b1_r + b2_r*bav +b3_r * visit + b4_r * age + b5_r * female + b6_r * bsa_bl + b7_r * bav * visit + b + e
+  
+  simdat <- as.data.frame(cbind(id, visit, age, female, bsa_bl, bav, root))
+  
+  # * Matching----
+  # create sample data by matching patients based on ps
+  simdat_base <- simdat %>% group_by(id) %>% slice(1)
+  ps <- glm(bav ~ age + female + bsa_bl, family = binomial, data = simdat_base)
+  #summary(ps)
+  ps.pm <- pairmatch(ps, data = simdat_base)
+  #summary(ps.pm) 
+  matched_base <- data.frame(simdat_base, matches = ps.pm, check.rows = TRUE) %>%
+    filter(!is.na(matches))
+  
+  K <- nrow(matched_base)
+  
+  #bal.tab(ps.pm, covs = subset(simdat_base, select = c(age, female, bsa_bl)),distance = ps$fitted.values) 
+  matched_long <- simdat[simdat$id %in% matched_base$id,] # sample data
+  
+  # join the matches column from matched_base to matched_long
+  matched_long <- matched_long %>% 
+    left_join(matched_base %>% select(id, matches), by = "id") %>%
+    mutate(matchid = matches)
+  
+  # Re-arrange the dataset with cluster id and subject id
+  matched_pair <- matched_long[order(matched_long$matches),] %>%
+    mutate(cluster_id = rep(1:(K/2), each=(maxT*2)),
+           subject_id = rep(1:K,each=maxT),
+           cluster.var = rep(rep(1:2,each = maxT), (K/2)),
+           order = rep(seq(1:10),(K/2))) %>%
+    select(-matches)
+  
+  # fit qls with indep, exch, ar1 to sample data and save estimates and ses 
+  # 1) independence
+  qls_ind <- qls(root ~  visit + bav:visit, data = matched_pair, subject_id = subject_id, 
+                 cluster_id = cluster_id, cluster.var = cluster.var, time.var=visit, time.str="ind")
+  estbeta_ind[[s]] <- qls_ind$coefficients
+  se_ind[[s]] <- qls_ind$se
+  dfse_ind[[s]] <- sqrt(diag((K/(K-p))*qls_ind$vcov))
+  ci_ind <- qls_ci(qls_ind)
+  cci_ind <- adj_qls_ci(qls_ind,K)
+  for (i in 1:length(beta_true_s)){
+    relbias_ind[[s]][i] <- (estbeta_ind[[s]][i] - beta_true_s[i]) / beta_true_s[i]
+    mse_ind[[s]][i] <- (estbeta_ind[[s]][i] - beta_true_s[i])^2
+    ifelse(beta_true_s[i]>=ci_ind[i,1]&beta_true_s[i]<=ci_ind[i,2], cp_ind[[s]][i]<-1, cp_ind[[s]][i]<-0)
+    ifelse(beta_true_s[i]>=cci_ind[i,1]&beta_true_s[i]<=cci_ind[i,2], ccp_ind[[s]][i]<-1, ccp_ind[[s]][i]<-0)
+  }
+  alpha_ind[s] <- qls_ind$alpha
+  tau_ind[s] <- qls_ind$tau
+  outvec_ind[[s]] <- c(s, K, unlist(estbeta_ind[[s]]), unlist(se_ind[[s]]), unlist(dfse_ind[[s]]),
+                       unlist(relbias_ind[[s]]), unlist(mse_ind[[s]]), 
+                       unlist(cp_ind[[s]]),unlist(ccp_ind[[s]]),alpha_ind[s],tau_ind[s])
+  
+  
+  # 2) AR1
+  qls_ar1 <- qls(root ~  visit + bav:visit, data = matched_pair, subject_id = subject_id, 
+                 cluster_id = cluster_id, cluster.var = cluster.var, time.var=visit, time.str="ar1")
+  estbeta_ar1[[s]] <- qls_ar1$coefficients
+  se_ar1[[s]] <- qls_ar1$se
+  dfse_ar1[[s]] <- sqrt(diag((K/(K-p))*qls_ar1$vcov))
+  ci_ar1 <- qls_ci(qls_ar1)
+  cci_ar1 <- adj_qls_ci(qls_ar1,K)
+  for (i in 1:length(beta_true_s)){
+    relbias_ar1[[s]][i] <- (estbeta_ar1[[s]][i] - beta_true_s[i]) / beta_true_s[i]
+    mse_ar1[[s]][i] <- (estbeta_ar1[[s]][i] - beta_true_s[i])^2
+    ifelse(beta_true_s[i]>=ci_ar1[i,1]&beta_true_s[i]<=ci_ar1[i,2], cp_ar1[[s]][i]<-1, cp_ar1[[s]][i]<-0)
+    ifelse(beta_true_s[i]>=cci_ar1[i,1]&beta_true_s[i]<=cci_ar1[i,2], ccp_ar1[[s]][i]<-1, ccp_ar1[[s]][i]<-0)
+  }
+  alpha_ar1[s] <- qls_ar1$alpha
+  tau_ar1[s] <- qls_ar1$tau
+  outvec_ar1[[s]] <- c(s, K, unlist(estbeta_ar1[[s]]), unlist(se_ar1[[s]]), unlist(dfse_ar1[[s]]),
+                       unlist(relbias_ar1[[s]]), unlist(mse_ar1[[s]]), 
+                       unlist(cp_ar1[[s]]),unlist(ccp_ar1[[s]]),alpha_ar1[s],tau_ar1[s])
+  
+  
+  # 3) Exchangeable
+  qls_exch <- qls(root ~  visit + bav:visit, data = matched_pair, subject_id = subject_id, 
+                  cluster_id = cluster_id, cluster.var = cluster.var, time.var=visit, time.str="exch")
+  estbeta_exch[[s]] <- qls_exch$coefficients
+  se_exch[[s]] <- qls_exch$se
+  dfse_exch[[s]] <- sqrt(diag((K/(K-p))*qls_exch$vcov))
+  ci_exch <- qls_ci(qls_exch)
+  cci_exch <- adj_qls_ci(qls_exch,K)
+  for (i in 1:length(beta_true_s)){
+    relbias_exch[[s]][i] <- (estbeta_exch[[s]][i] - beta_true_s[i]) / beta_true_s[i]
+    mse_exch[[s]][i] <- (estbeta_exch[[s]][i] - beta_true_s[i])^2
+    ifelse(beta_true_s[i]>=ci_exch[i,1]&beta_true_s[i]<=ci_exch[i,2], cp_exch[[s]][i]<-1, cp_exch[[s]][i]<-0)
+    ifelse(beta_true_s[i]>=cci_exch[i,1]&beta_true_s[i]<=cci_exch[i,2], ccp_exch[[s]][i]<-1, ccp_exch[[s]][i]<-0)
+  }
+  alpha_exch[s] <- qls_exch$alpha
+  tau_exch[s] <- qls_exch$tau
+  outvec_exch[[s]] <- c(s, K, unlist(estbeta_exch[[s]]), unlist(se_exch[[s]]), unlist(dfse_ar1[[s]]),
+                        unlist(relbias_exch[[s]]), unlist(mse_exch[[s]]), 
+                        unlist(cp_exch[[s]]),unlist(ccp_exch[[s]]),alpha_exch[s],tau_exch[s])
+}
 
-age1i <- rnorm((1 - pbav0) * N, mean = 60, sd = 10)
-female1i <- rbinom((1 - pbav0) * N, size = 1, prob = 0.3)
-bsa_bl1i <- rnorm((1 - pbav0) * N, mean = 2, sd = 0.2)
+# output
+names <- c("simnum", "sample_size", "(intercept)", "visit", "vist:bav",
+           "SE(beta1)", "SE(beta2)", "SE(beta3)","DF-CorrectedSE(1)", "DF-CorrectedSE(beta2)", "DF-CorrectedSE(beta3)",
+           "RelBias(b1)","RelBias(b2)","RelBias(b3)", 
+           "MSE(b1)","MSE(b2)","MSE(b3)", "CovProb(b1)", "CovProb(b2)","CovProb(b3)",
+           "AdjCovProv(b1)","AdjCovProv(b2)","AdjCovProv(b3)","alpha","tau")
 
-ps0_xbeta <- b01 + b02 * age0i + b03 * female0i + b04 * bsa_bl0i
-pscore0 <- exp(ps0_xbeta)/ (1 + exp(ps0_xbeta))
-ps1_xbeta <- b11 + b12 * age1i + b13 * female1i + b14 * bsa_bl1i
-pscore1 <- exp(ps1_xbeta)/ (1 + exp(ps1_xbeta))
-ps_xbeta <- c(ps0_xbeta,ps1_xbeta)
-pscore <- c(pscore0, pscore1)
-bavi <- rbinom(N, size = 1, prob = pscore)
+outvec_ind <- do.call("rbind", outvec_ind)
+colnames(outvec_ind) <- names
+outvec_exch <- do.call("rbind",outvec_exch)
+colnames(outvec_exch) <- names
+outvec_ar1 <- do.call("rbind", outvec_ar1)
+colnames(outvec_ar1) <- names
 
-# repeat baseline covariates maxT times
-agei <- c(age0i, age1i)
-femalei <- c(female0i, female1i)
-bsa_bli <- c(bsa_bl0i, bsa_bl1i)
-age <- rep(agei, each = maxT)
-female <- rep(femalei, each = maxT)
-bsa_bl <- rep(bsa_bli, each = maxT)
-bav <- rep(bavi, each = maxT)
+outmean_ind <- c(simnum, median(outvec_ind[,2]),colMeans(outvec_ind[,c(-1,-2)]),
+                 sd(outvec_ind[,3]),sd(outvec_ind[,4]),sd(outvec_ind[,5]),sd(outvec_ind[,24]),sd(outvec_ind[,25]))
+outmean_exch <- c(simnum,median(outvec_exch[,2]),colMeans(outvec_exch[,c(-1,-2)]), 
+                  sd(outvec_exch[,3]),sd(outvec_exch[,4]),sd(outvec_exch[,5]),sd(outvec_exch[,24]),sd(outvec_exch[,25]))
+outmean_ar1 <- c(simnum,median(outvec_ar1[,2]),colMeans(outvec_ar1[,c(-1,-2)]), 
+                 sd(outvec_ar1[,3]),sd(outvec_ar1[,4]),sd(outvec_ar1[,5]),sd(outvec_ar1[,24]),sd(outvec_ar1[,25]))
 
-# generate outcome values
-bi <- rnorm(N, mean = 0, sd = 5)
-b <- rep(bi, each = maxT)
-e <- rnorm(N*maxT, mean = 0, sd = 1)
-# add the confounders (age, female, bsa_bl)
-root <- b1_r + b2_r*bav +b3_r * visit + b4_r * age + b5_r * female + b6_r * bsa_bl + b7_r * bav * visit + b + e
+Model <- c("Independence","","","Exchangeable","","", "AR(1)","","")
+Parameters <- rep(c("(intercept)", "visit", "visit:bav"),3)
+SampleSize <- rep(outmean_ind[2],9)
+MeanEstimates <- c(outmean_ind[3:5], outmean_exch[3:5],outmean_ar1[3:5])
+TrueValues <- rep(beta_true_s,3)
+MeanSE <- c(outmean_ind[6:8], outmean_exch[6:8],outmean_ar1[6:8])
+MeanSE_adj <- c(outmean_ind[9:11], outmean_exch[9:11],outmean_ar1[9:11])
+MeanRelBias <- c(outmean_ind[12:14], outmean_exch[12:14],outmean_ar1[12:14])
+MSE <- c(outmean_ind[15:17], outmean_exch[15:17],outmean_ar1[15:17])
+CovProb <- c(outmean_ind[18:20], outmean_exch[18:20],outmean_ar1[18:20])
+CovProb_adj <- c(outmean_ind[21:23], outmean_exch[21:23],outmean_ar1[21:23])
+Meanalpha <- c(rep(outmean_ind[24],3),rep(outmean_exch[24],3), rep(outmean_ar1[24],3))
+Meantau <- c(rep(outmean_ind[25],3),rep(outmean_exch[25],3), rep(outmean_ar1[25],3))
+SD <- c(outmean_ind[26:28], outmean_exch[26:28],outmean_ar1[26:28])
+SDalpha <- c(rep(outmean_ind[29],3),rep(outmean_exch[29],3), rep(outmean_ar1[29],3))
+SDtau <- c(rep(outmean_ind[30],3),rep(outmean_exch[30],3), rep(outmean_ar1[30],3))
 
-simdat <- as.data.frame(cbind(id, visit, age, female, bsa_bl, bav, root))
+numout <- round(cbind(TrueValues, MeanEstimates, MeanSE, MeanSE_adj,SD, 
+                      MeanRelBias, MSE, CovProb,CovProb_adj,Meanalpha,SDalpha, Meantau,SDtau),3)
+tab <- data.frame(Model, SampleSize, Parameters, numout)
 
-# * Matching----
-# create sample data by matching patients based on ps
-simdat_base <- simdat %>% group_by(id) %>% slice(1)
-ps <- glm(bav ~ age + female + bsa_bl, family = binomial, data = simdat_base)
-#summary(ps)
-ps.pm <- pairmatch(ps, data = simdat_base)
-#summary(ps.pm) 
-matched_base <- data.frame(simdat_base, matches = ps.pm, check.rows = TRUE) %>%
-  filter(!is.na(matches))
-
-K <- nrow(matched_base)
-
-#bal.tab(ps.pm, covs = subset(simdat_base, select = c(age, female, bsa_bl)),distance = ps$fitted.values) 
-matched_long <- simdat[simdat$id %in% matched_base$id,] # sample data
-
-# join the matches column from matched_base to matched_long
-matched_long <- matched_long %>% 
-  left_join(matched_base %>% select(id, matches), by = "id") %>%
-  mutate(matchid = matches)
-
-# Re-arrange the dataset with cluster id and subject id
-matched_pair <- matched_long[order(matched_long$matches),] %>%
-  mutate(cluster_id = rep(1:(K/2), each=(maxT*2)),
-         subject_id = rep(1:K,each=maxT),
-         cluster.var = rep(rep(1:2,each = maxT), (K/2)),
-         order = rep(seq(1:10),(K/2))) %>%
-  select(-matches)
+out_tab <- kableExtra::kable(tab, row.names=FALSE, escape = FALSE,
+                             caption = "QLS models comparison for matched sample with 1000 simulations",
+                             col.names = c("Model","Median sample size","Parameters","True Value","Mean Est",
+                                           "Mean SE","DF-corrected SE","Emp SE","Mean Rel Bias","MSE",
+                                           "Cov Prob","Adj.Cov Prob","Mean alpha", "Emp SE alpha","Mean tau","Emp SE tau")) %>% 
+  kable_styling(full_width = F, position = "center") %>%
+  row_spec(c(3,6,9), background = "lightgrey") %>%
+  column_spec(1:2, background = "transparent") 
 
 
 
-qls(root ~  visit + bav:visit, data = matched_pair, subject_id = subject_id, 
-    cluster_id = cluster_id, cluster.var = cluster.var, time.var=visit, time.str="ind")
+result <- tab[c(3,6,9),c(-1,-3,-6,-9,-10,-11)]
+row.names(result) <- c("Independence","Exchangeable","AR(1)")
+init_out <- kableExtra::kable(result,escape = FALSE,
+                              caption = "QLS models comparison for matched sample from 1000 simulations (BAV:Visit)",
+                              col.names = c("Median sample size","True Value","Mean Est","Mean SE",
+                                            "Emp SE","Cov Prob","Mean alpha","Emp SE alpha","Mean tau","Emp SE tau")) %>%
+  kable_styling(full_width = F, position = "center")
 
-qls(root ~  visit + bav:visit, data = matched_pair, subject_id = subject_id, 
-    cluster_id = cluster_id, cluster.var = cluster.var, time.var=visit, time.str="ar1")
-
-qls(root ~  visit + bav:visit, data = matched_pair, subject_id = subject_id, 
-    cluster_id = cluster_id, cluster.var = cluster.var, time.var=visit, time.str="exch")
+#saveRDS(out_tab, "res_all.RDS")
+saveRDS(init_out, "qls_sd0.RDS")
 
