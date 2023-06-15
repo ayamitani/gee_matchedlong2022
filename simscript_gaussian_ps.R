@@ -14,15 +14,15 @@ id <- rep(1:N, each = maxT)
 pbav0 = 0.1
 
 # coef for baseline covariates (High overlap)
-b01 <- 2.2
-b02 <- -0.002
-b03 <- -0.4
-b04 <- 0.1
-# for bav = 1
-b11 <- 2.2
-b12 <- -0.004
-b13 <- -0.2
-b14 <- 0.1
+# b01 <- 2.2
+# b02 <- -0.002
+# b03 <- -0.4
+# b04 <- 0.1
+# # for bav = 1
+# b11 <- 2.2
+# b12 <- -0.004
+# b13 <- -0.2
+# b14 <- 0.1
 
 # coef for baseline covariates for bav = 0 (Moderate)
 # b01 <- 6 # 4-->6
@@ -35,16 +35,16 @@ b14 <- 0.1
 # b13 <- -1.3
 # b14 <- 1.5
 
-# # coef for baseline covariates for bav = 0 (Minimal)
-# b01 <- 2.7
-# b02 <- -0.25
-# b03 <- -1.2
-# b04 <- 6
-# # coef for baseline covariates for bav = 1
-# b11 <- 20
-# b12 <- -0.2
-# b13 <- -6
-# b14 <- 0.3
+# coef for baseline covariates for bav = 0 (Minimal)
+b01 <- 2.7
+b02 <- -0.25
+b03 <- -1.2
+b04 <- 6
+# coef for baseline covariates for bav = 1
+b11 <- 20
+b12 <- -0.2
+b13 <- -6
+b14 <- 0.3
 
 
 # coef for generating outcome values
