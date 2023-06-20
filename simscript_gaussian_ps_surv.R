@@ -185,9 +185,9 @@ bsa_bl <- rep(bsa_bli, each = maxT)
 bav <- rep(bavi, each = maxT)
 
 # generate time to death
-table(rexp(10000, rate = 0.4) > 4)
 covs <- data.frame(agei, bavi)
-simsurv(dist = "exponential", lambdas = 0.4, betas = c(agei = 0.01, bavi = -0.5), x = covs, maxt = 5)
+# find hazrate that has mortality rate 0%, 20% and 80%
+survtimes <- simsurv(dist = "exponential", lambdas = 0.1, betas = c(agei = 0.01, bavi = -0.5), x = covs, maxt = 4)
 
 # generate outcome values
 bi <- rnorm(N, mean = 0, sd = 5)
@@ -196,7 +196,10 @@ e <- rnorm(N*maxT, mean = 0, sd = 1)
 # add the confounders (age, female, bsa_bl)
 root <- b1_r + b2_r*bav +b3_r * visit + b4_r * age + b5_r * female + b6_r * bsa_bl + b7_r * bav * visit + b + e
 
-simdat <- as.data.frame(cbind(id, visit, age, female, bsa_bl, bav, root))
+simdat0 <- as.data.frame(cbind(id, visit, age, female, bsa_bl, bav, root))
+
+simdat <- left_join(simdat0, survtimes, by = "id") |>
+  mutate(root = ifelse(visit > eventtime, NA, root))
 
 # * Matching----
 # create sample data by matching patients based on ps
