@@ -6,23 +6,12 @@ N <- 250
 # total number of visits
 maxT <- 5
 # vector of visits for all patients
-visit <- rep(1:maxT, N)
+visit <- rep(0:(maxT-1), N)
 # vector of patient ids
 id <- rep(1:N, each = maxT)
 
 # proportion of bav = 0 in hospital cohort
 pbav0 = 0.1
-
-# coef for baseline covariates (High overlap)
-# b01 <- 2.2
-# b02 <- -0.002
-# b03 <- -0.4
-# b04 <- 0.1
-# # for bav = 1
-# b11 <- 2.2
-# b12 <- -0.004
-# b13 <- -0.2
-# b14 <- 0.1
 
 # coef for baseline covariates for bav = 0 (Moderate)
 # b01 <- 6 # 4-->6
@@ -150,7 +139,7 @@ adj_geeglm_ci <- function(model, N, level = 0.95) {
   return(results)
 }
 
-#Simulation----
+#----------------Simulation-----------------
 for (s in 1:simnum) {
 # baseline covariates
 age0i <- rnorm(pbav0 * N, mean = 60, sd = 10)
@@ -169,12 +158,6 @@ ps_xbeta <- c(ps0_xbeta,ps1_xbeta)
 pscore <- c(pscore0, pscore1)
 bavi <- rbinom(N, size = 1, prob = pscore)
 
-#check proportion of overlap
-# x <- list(ps_tav = ps0_xbeta,ps_bav=ps1_xbeta)
-# overlap(x,type="2",plot=TRUE)
-
-
-
 # repeat baseline covariates maxT times
 agei <- c(age0i, age1i)
 femalei <- c(female0i, female1i)
@@ -186,11 +169,14 @@ bav <- rep(bavi, each = maxT)
 
 # generate time to death
 covs <- data.frame(agei, bavi)
-# find hazrate that has mortality rate 0%, 20% and 80%
-survtimes <- simsurv(dist = "exponential", lambdas = 0.1, betas = c(agei = 0.01, bavi = -0.5), x = covs, maxt = 4)
+
+#---------------survtimes---------
+# find hazrate that has mortality rate 0% (lambda=0), 20%(lambda=0.05) and 80%(lambda=0.35)
+survtimes <- simsurv(dist = "exponential", lambdas = 0.05, betas = c(agei = 0.01, bavi = -0.5), x = covs, maxt = 4)
 
 # generate outcome values
-bi <- rnorm(N, mean = 0, sd = 5)
+#-----------sd=0/1/5----------
+bi <- rnorm(N, mean = 0, sd = 5) 
 b <- rep(bi, each = maxT)
 e <- rnorm(N*maxT, mean = 0, sd = 1)
 # add the confounders (age, female, bsa_bl)
@@ -201,7 +187,7 @@ simdat0 <- as.data.frame(cbind(id, visit, age, female, bsa_bl, bav, root))
 simdat <- left_join(simdat0, survtimes, by = "id") |>
   mutate(root = ifelse(visit > eventtime, NA, root))
 
-# * Matching----
+#--------Matching----
 # create sample data by matching patients based on ps
 simdat_base <- simdat %>% group_by(id) %>% slice(1)
 ps <- glm(bav ~ age + female + bsa_bl, family = binomial, data = simdat_base)
@@ -468,7 +454,6 @@ out_t2 <- kableExtra::kable(t2, row.names=FALSE, escape = FALSE,
                             col.names = c("Model","Sample size","Parameters","True values","Mean estimates",
                                           "Mean SE","Adjusted SE","SD","Mean relative bias","MSE","Coverage prob","Adj.CovProb")) %>% 
   kable_styling(full_width = F, position = "center") %>%
-  #collapse_rows(columns = 1, valign = "middle") %>%
   row_spec(c(3,6,9,12,15), background = "lightgrey") %>%
   column_spec(1:2, background = "transparent") 
 
