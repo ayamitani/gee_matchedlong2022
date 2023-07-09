@@ -412,8 +412,8 @@ names1 <- c("simnum", "sample_size", "(intercept)", "visit", "bav","vist:bav",
             "SE(beta1)", "SE(beta2)", "SE(beta3)","SE(beta4)","AdjSE1","AdjSE2",
             "AdjSE3","AdjSE4","RelBias(b1)","RelBias(b2)",
             "RelBias(b3)", "RelBias(b4)","MSE(b1)","MSE(b2)","MSE(b3)","MSE(b4)","CovProb(b1)",
-            "CovProb(b2)","CovProb(b3)", "CovProb(b4)","AdjCovProv(b1)","AdjCovProv(b2)",
-            "AdjCovProv(b3)","AdjCovProv(b4)","alpha")
+            "CovProb(b2)","CovProb(b3)", "CovProb(b4)","AdjCovProb(b1)","AdjCovProb(b2)",
+            "AdjCovProb(b3)","AdjCovProb(b4)","alpha")
 outvec_inds <- do.call("rbind", outvec_inds)
 colnames(outvec_inds) <- names1
 outvec_exchs <- do.call("rbind",outvec_exchs)
@@ -430,7 +430,7 @@ colnames(outvec_ar1s) <- names1
 outvec <- rbind(outvec_inds,outvec_exchs,outvec_ar1s)
 corstr <- rep(c("Independence","Exchangeable","AR(1)"), each = simnum)
 sample_out <- as.data.frame(cbind(corstr, outvec))
-# saveRDS(sample_out,"GEE_R0S5") # Rate0/2/8 Sig0/1/5--------
+# saveRDS(sample_out,"GEE_R0S5") # Mortality Rate 0/2/8 Sigma_b 0/1/5--------
 
 
 
