@@ -1,4 +1,3 @@
-
 #____________________________________________________________
 # function to estimate stage 1 alpha for ar1 structure
 #____________________________________________________________
@@ -12,38 +11,39 @@ estalpha1_ar1 <- function(mdat, Z, Qinv) {
   Fa <- Fb <- 0
   for (i in mdat$cluster_id) { # for each pair
     S1_j <- S2_j <- S1_ja <- S1_jb <- 0
-    for (j in 1:2) { # for each subject in ith pair
-      t_ij <- nlevels(as.factor(mdat[mdat$cluster_id == i & mdat$cluster.var==j,]$visit))
-      
-      Z_i1 <- Z[mdat$cluster_id == i & mdat$cluster.var == 1]
-      matZ_i1 <- matrix(Z_i1, nrow = t_ij) 
-      Z_i2 <- Z[mdat$cluster_id == i & mdat$cluster.var == 2]
-      matZ_i2 <- matrix(Z_i2, nrow = t_ij) 
-      
-      if (t_ij > 1) {
-        for (k in 1:(t_ij-1)) {
-          matZ1 <- matrix(c(matZ_i1[k],matZ_i2[k]),nrow=2)
-          matZ2 <- matrix(c(matZ_i1[k+1],matZ_i2[k+1]),nrow=2)
-          S2_j <- S2_j + t(matZ1) %*% Qinv %*% matZ2
+    
+    t_i1 <- nlevels(as.factor(mdat[mdat$cluster_id == i & mdat$cluster.var==1,]$visit))
+    t_i2 <- nlevels(as.factor(mdat[mdat$cluster_id == i & mdat$cluster.var==2,]$visit))
+    t_ij <- min(c(t_i1, t_i2))
+    Z_i1 <- Z[mdat$cluster_id == i & mdat$cluster.var == 1]
+    matZ_i1 <- matrix(Z_i1, nrow = t_ij)
+    Z_i2 <- Z[mdat$cluster_id == i & mdat$cluster.var == 2]
+    matZ_i2 <- matrix(Z_i2, nrow = t_ij)
+    
+    if (t_ij > 1) {
+      for (k in 1:(t_ij-1)) {
+        matZ1 <- matrix(c(matZ_i1[k],matZ_i2[k]),nrow=2)
+        matZ2 <- matrix(c(matZ_i1[k+1],matZ_i2[k+1]),nrow=2)
+        S2_j <- S2_j + t(matZ1) %*% Qinv %*% matZ2
+      }
+      if (t_ij ==2){
+        for(k in 1:t_ij){
+          matZ <- matrix(c(matZ_i1[k],matZ_i2[k]),nrow=2)
+          S1_j <- S1_j + t(matZ) %*% Qinv %*% matZ
         }
-        if (t_ij ==2){
-          for(k in 1:t_ij){
-            matZ <- matrix(c(matZ_i1[k],matZ_i2[k]),nrow=2)
-            S1_j <- S1_j + t(matZ) %*% Qinv %*% matZ
-          }
-        }else{
-          for(k in 1:t_ij){
-            matZ <- matrix(c(matZ_i1[k],matZ_i2[k]),nrow=2)
-            S1_ja <- S1_ja + t(matZ) %*% Qinv %*% matZ
-          }
-          for(k in 2:(t_ij-1)){
-            matZ <- matrix(c(matZ_i1[k],matZ_i2[k]),nrow=2)
-            S1_jb <- S1_jb + t(matZ) %*% Qinv %*% matZ
-          }
-          S1_j <- S1_ja + S1_jb
+      }else{
+        for(k in 1:t_ij){
+          matZ <- matrix(c(matZ_i1[k],matZ_i2[k]),nrow=2)
+          S1_ja <- S1_ja + t(matZ) %*% Qinv %*% matZ
         }
+        for(k in 2:(t_ij-1)){
+          matZ <- matrix(c(matZ_i1[k],matZ_i2[k]),nrow=2)
+          S1_jb <- S1_jb + t(matZ) %*% Qinv %*% matZ
+        }
+        S1_j <- S1_ja + S1_jb
       }
     }
+    
     Fa <- Fa + S1_j
     Fb <- Fb + S2_j
   }
@@ -69,42 +69,49 @@ estalpha2_ar1 <- function(alpha0){
 #____________________________________________________________
 # function to estimate stage 1 alpha for exchangeable structure
 #____________________________________________________________
+
 estalpha1_exch <- function(mdat, Z, Qinv){
   match.call()
   alphafun <- function(alpha){
     GG1 <- GG2 <- 0
-    for (i in mdat$cluster_id){
+    for (i in unique(mdat$cluster_id)){
       GG1j <- GG2j <- 0
-      for (j in 1:2) { # for each subject in ith pair
-        t_ij <- nlevels(as.factor(mdat[mdat$cluster_id == i & mdat$cluster.var==j,]$visit))
-        Z_i1 <- Z[mdat$cluster_id == i & mdat$cluster.var == 1]
-        matZ_i1 <- matrix(Z_i1, nrow = t_ij) 
-        Z_i2 <- Z[mdat$cluster_id == i & mdat$cluster.var == 2]
-        matZ_i2 <- matrix(Z_i2, nrow = t_ij) 
-        
-        if(t_ij > 1){
-          g1 <- vector()
-          for(t in 1:t_ij){
-            matZ <- matrix(c(matZ_i1[t],matZ_i2[t]),nrow=2)
-            g1[t] <- t(matZ) %*% Qinv %*% matZ
-          } 
-          G1 <- sum(g1)
-          
-          g2 <- vector()
-          for(t in 1:(t_ij - 1)){
-            for(tt in (t+1):t_ij){
-              matZ1 <- matrix(c(matZ_i1[t],matZ_i2[t]),nrow=2)
-              matZ2 <- matrix(c(matZ_i1[tt],matZ_i2[tt]),nrow=2)
-              g2 <- c(g2, t(matZ1) %*% Qinv %*% matZ2) 
-            }
+      
+      t_i1 <- nlevels(as.factor(mdat[mdat$cluster_id == i & mdat$cluster.var==1,]$visit))
+      t_i2 <- nlevels(as.factor(mdat[mdat$cluster_id == i & mdat$cluster.var==2,]$visit))
+      t_ij <- max(c(t_i1, t_i2))
+      Z_i1 <- Z[mdat$cluster_id == i & mdat$cluster.var == 1]
+      if (t_i1 < t_ij) {Z_i1 <- c(Z_i1, rep(0, t_ij - t_i1))}
+      matZ_i1 <- matrix(Z_i1, nrow = t_ij) 
+      Z_i2 <- Z[mdat$cluster_id == i & mdat$cluster.var == 2]
+      if (t_i2 < t_ij) {Z_i2 <- c(Z_i2, rep(0, t_ij - t_i2))} 
+      matZ_i2 <- matrix(Z_i2, nrow = t_ij) 
+      
+      #if(t_ij > 1){
+      g1 <- vector()
+      for(t in 1:t_ij){
+        matZ <- matrix(c(matZ_i1[t],matZ_i2[t]),nrow=2)
+        g1[t] <- t(matZ) %*% Qinv %*% matZ
+      } 
+      G1 <- sum(g1)
+      
+      g2 <- vector()
+      G2 <- 0 #
+      if(t_ij > 1){ #
+        for(t in 1:(t_ij - 1)){
+          for(tt in (t+1):t_ij){
+            matZ1 <- matrix(c(matZ_i1[t],matZ_i2[t]),nrow=2)
+            matZ2 <- matrix(c(matZ_i1[tt],matZ_i2[tt]),nrow=2)
+            g2 <- c(g2, t(matZ1) %*% Qinv %*% matZ2) 
           }
-          G2 <- sum(g2)
-          
-          denom <- ( 1 + ( t_ij - 1 ) * alpha ) ^ 2
-          num1 <- alpha ^ 2 * ( t_ij - 1 ) * ( t_ij - 2 ) + 2 * alpha * ( t_ij - 1 )
-          num2 <- ( 1 + alpha ^ 2 * ( t_ij - 1 ) )
         }
+        G2 <- sum(g2)
+        
       }
+      denom <- ( 1 + ( t_ij - 1 ) * alpha ) ^ 2
+      num1 <- alpha ^ 2 * ( t_ij - 1 ) * ( t_ij - 2 ) + 2 * alpha * ( t_ij - 1 )
+      num2 <- ( 1 + alpha ^ 2 * ( t_ij - 1 ) )
+      
       GG1j <- GG1j + ( G1 * num1 ) / denom
       GG2j <- GG2j + ( G2 * num2 ) / denom
       
@@ -124,15 +131,13 @@ estalpha1_exch <- function(mdat, Z, Qinv){
 #____________________________________________________________
 
 estalpha2_exch <- function(alpha0, mdat){
-  
   match.call()
-  
   alphapart1 <- alphapart2 <- 0
+  
   for (i in mdat$cluster_id){
-    #cveci <- unique(mdat[mdat$cluster_id == i,]$cluster.var)
     alphapart1j <- alphapart2j <- 0
-    for (j in 1:2){
-      t_ij <- nlevels(as.factor(mdat[mdat$cluster_id == i & mdat$cluster.var == j,]$visit))
+    
+      t_ij <- 5 #nlevels(as.factor(mdat[mdat$cluster_id == i & mdat$cluster.var == j,]$visit))
       if(t_ij > 1){
         alphapart1num <- alpha0 * ( t_ij - 1 )* ( alpha0 * (t_ij - 2) + 2 )
         alphapart2num <- ( t_ij - 1 ) * ( 1 + alpha0 ^ 2 * (t_ij - 1) )
@@ -141,7 +146,6 @@ estalpha2_exch <- function(alpha0, mdat){
         alphapart1j <- alphapart1j + alphapart1num / alphaden
         alphapart2j <- alphapart2j + alphapart2num / alphaden
       }
-    }
     alphapart1 <- alphapart1 + alphapart1j
     alphapart2 <- alphapart2 + alphapart2j
   }
@@ -154,22 +158,33 @@ estalpha2_exch <- function(alpha0, mdat){
 #____________________________________________________________
 # function to estimate stage 1 tau for exchangeable structure
 #____________________________________________________________
-esttau1_exch <- function(mdat, Z, Rinv){
+esttau1_exch <- function(mdat, maxT, Z, time.str,alpha0){
   Fa <- Fb <- 0
   for (i in mdat$cluster_id){
     a_1 <- a_2 <- 0
-    for (j in 1:2) { # for each subject in ith pair
-      t_ij <- nlevels(as.factor(mdat[mdat$cluster_id == i & mdat$cluster.var==j,]$visit))
-      Z_i1 <- Z[mdat$cluster_id == i & mdat$cluster.var == 1]
-      matZ_i1 <- matrix(Z_i1, nrow = t_ij)
-      Z_i2 <- Z[mdat$cluster_id == i & mdat$cluster.var == 2]
-      matZ_i2 <- matrix(Z_i2, nrow = t_ij)
-      a_1 <- a_1 + t(matZ_i1) %*% Rinv %*% matZ_i1 + t(matZ_i2) %*% Rinv %*% matZ_i2
-      a_2 <- a_2 + t(matZ_i1) %*% Rinv %*% matZ_i2
-      
-      Fa <- Fa + a_1
-      Fb <- Fb + a_2
-    }
+    t_i1 <- nlevels(as.factor(mdat[mdat$cluster_id == i & mdat$cluster.var==1,]$visit))
+    t_i2 <- nlevels(as.factor(mdat[mdat$cluster_id == i & mdat$cluster.var==2,]$visit))
+    if (time.str == "ind") {Rinv1 <- solve(diag(t_i1))} 
+    if (time.str == "ar1") {Rinv1 <- solve(ar1_cor(alpha0, t_i1))} 
+    if (time.str == "exch") {Rinv1 <- solve(exch_cor(alpha0, t_i1))}
+    if (time.str == "ind") {Rinv2 <- solve(diag(t_i2))} 
+    if (time.str == "ar1") {Rinv2 <- solve(ar1_cor(alpha0, t_i2))} 
+    if (time.str == "exch") {Rinv2 <- solve(exch_cor(alpha0, t_i2))}
+    Rinv <- solve(exch_cor(alpha0, maxT))
+    
+    Z_i1 <- Z[mdat$cluster_id == i & mdat$cluster.var == 1]
+    matZ_i1 <- matrix(Z_i1, nrow = t_i1)
+    Z_i2 <- Z[mdat$cluster_id == i & mdat$cluster.var == 2]
+    matZ_i2 <- matrix(Z_i2, nrow = t_i2)
+    a_1 <- a_1 + t(matZ_i1) %*% Rinv1 %*% matZ_i1 + t(matZ_i2) %*% Rinv2 %*% matZ_i2
+    
+    if (maxT > t_i1) {matZ_i1 <- c(matZ_i1, rep(0, maxT - t_i1))}
+    if (maxT > t_i2) {matZ_i2 <- c(matZ_i2, rep(0, maxT - t_i2))}
+    a_2 <- a_2 + t(matZ_i1) %*% Rinv %*% matZ_i2
+    
+    Fa <- Fa + a_1
+    Fb <- Fb + a_2
+    
   }
   ### stage 1 estimate of tau
   tau0 <- ( Fa - sqrt( ( Fa - 2 * Fb ) * ( Fa + 2 * Fb ) ) ) / ( 2 * Fb )
@@ -187,7 +202,7 @@ esttau2_exch <- function(tau0){
 
 
 #____________________________________________________________
-# function for exchangeable correlation structure
+# function for exchangeable correlaiton structure
 #____________________________________________________________
 exch_cor <- function(rho, n) {
   # Create an nxn matrix filled with tau
@@ -198,7 +213,7 @@ exch_cor <- function(rho, n) {
 }
 
 #____________________________________________________________
-# function for ar1 correlation structure
+# function for ar1 correlaiton structure
 #____________________________________________________________
 
 ar1_cor <- function(rho,n) {
@@ -211,50 +226,138 @@ ar1_cor <- function(rho,n) {
 
 
 #____________________________________________________________
+# function for generating Sigma
+#____________________________________________________________
+
+Sigma <- function(data,tau, alpha, time.str, time.var){
+  Sigma_list <- list()
+  for (i in unique(data$cluster_id)) {
+    Qi <- exch_cor(tau, 2)
+    ti1 <- nlevels(as.factor(data[data$cluster_id == i & data$cluster.var==1,]$visit))
+    ti2 <- nlevels(as.factor(data[data$cluster_id == i & data$cluster.var==2,]$visit))
+    ni <- ti1+ti2
+    if (ti1 >= ti2)
+    {
+      if (time.str == "ind") {Ri <- diag(ti1)}
+      if (time.str == "ar1") {Ri <- ar1_cor(alpha, ti1)}
+      if (time.str == "exch") {Ri <- exch_cor(alpha, ti1)}
+      Fi <- kronecker(Qi,Ri)
+      Sigma_i <- Fi[1:ni, 1:ni]
+      Sigma_list <- c(Sigma_list, list(Sigma_i))
+    }
+    else {
+      if (time.str == "ind") {Ri <- diag(ti2)}
+      if (time.str == "ar1") {Ri <- ar1_cor(alpha, ti2)}
+      if (time.str == "exch") {Ri <- exch_cor(alpha, ti2)}
+      Fi <- kronecker(Qi,Ri)
+      Sigma_i <- Fi[1:ni, 1:ni]
+      Sigma_list <- c(Sigma_list, list(Sigma_i))
+    }
+  }
+  Sigma_list
+}
+
+#____________________________________________________________
+# function for estimating beta
+#____________________________________________________________
+
+beta_hat <- function(formula,data, time.var, time.str, tau, alpha) {
+  X <- model.matrix(object=formula, data = data) #design matrix
+  y <- as.matrix(data$root) #response variable
+  Sigma_list <- list()
+  Xt_Sigma_inv_X <- list()
+  Xt_Sigma_inv_y <- list()
+  S <- Sigma(data=data, tau=tau, alpha=alpha, time.str=time.str, time.var=time.var)
+  for (i in 1:length(S)) {
+    ti1 <- nlevels(as.factor(data[data$cluster_id == i & data$cluster.var==1,]$visit))
+    ti2 <- nlevels(as.factor(data[data$cluster_id == i & data$cluster.var==2,]$visit))
+    if (ti1 >= ti2){
+      Xi <- rbind(X[data$cluster_id==i & data$cluster.var==1,], 
+                  X[data$cluster_id==i & data$cluster.var==2,])
+      yi <- rbind(as.matrix(y[data$cluster_id==i & data$cluster.var==1,]), 
+                  as.matrix(y[data$cluster_id==i & data$cluster.var==2]))
+    }
+    else {
+      Xi <- rbind(X[data$cluster_id==i & data$cluster.var==2,], 
+                  X[data$cluster_id==i & data$cluster.var==1,])
+      yi <- rbind(as.matrix(y[data$cluster_id==i & data$cluster.var==2,]), 
+                  as.matrix(y[data$cluster_id==i & data$cluster.var==1]))
+    }
+    Sigma_inv <- solve(S[[i]])
+    Xt_Sigma_inv_X_i <- t(Xi) %*% Sigma_inv %*% Xi
+    Xt_Sigma_inv_X[[i]] <- Xt_Sigma_inv_X_i
+    Xt_Sigma_inv_y_i <- t(Xi) %*% Sigma_inv %*% yi
+    Xt_Sigma_inv_y[[i]] <- Xt_Sigma_inv_y_i
+  }
+  return(solve(Reduce("+", Xt_Sigma_inv_X)) %*% Reduce("+",Xt_Sigma_inv_y))
+}
+
+
+#____________________________________________________________
+# function for sandwich estimator
+#____________________________________________________________
+sandwich <- function(formula,data,beta_hat,alpha, time.str){
+  X <- model.matrix(object=formula, data = data)
+  y <- as.matrix(data$root)
+  W <- list()
+  mid <- list()
+  for (i in unique(data$cluster_id)) {
+    Xi <- X[data$cluster_id==i,]
+    yi <- y[data$cluster_id==i]
+    Zi <- yi - (Xi %*% as.matrix(beta_hat))
+    ti1 <- nlevels(as.factor(data[data$cluster_id == i & data$cluster.var==1,]$visit))
+    ti2 <- nlevels(as.factor(data[data$cluster_id == i & data$cluster.var==2,]$visit))
+    ni <- ti1 + ti2
+    Ai <- diag(ni) ^ (1/2)
+    if (time.str == "ind") {Ri <- diag(ni)}
+    if (time.str == "ar1") {Ri <- ar1_cor(alpha, ni)}
+    if (time.str == "exch") {Ri <- exch_cor(alpha, ni)}
+    Wi <- t(Xi) %*% Ai %*% solve(Ri) %*% Ai %*% Xi
+    W[[i]] <- Wi
+    mid_i <- t(Xi) %*% Ai %*% solve(Ri) %*% Zi %*% t(Zi) %*% solve(Ri) %*% Ai %*% Xi
+    mid[[i]] <- mid_i
+  }
+  Wn_inv <- solve(Reduce("+", W))
+  mid_n <- Reduce("+", mid)
+  out <- list()
+  out$vcov <- Wn_inv %*% mid_n %*% Wn_inv
+  out$se <- sqrt(diag(out$vcov))
+  return(out)
+}
+
+
+#____________________________________________________________
 # function to fit QLS
 #____________________________________________________________
-qls <- function(formula, data, subject_id, cluster_id , cluster.var, time.var, time.str){
+qls <- function(formula, data, subject_id, cluster_id , cluster.var, time.var, maxT, time.str){
   iter <- 0
-  bdiff <- c(1,1,1)
+  bdiff <- c(1,1,1,1)
   alpha0  <- 0.1 # initial alpha estimate
-  n <- length(unique(time.var)) # assume balanced time points
   
   # use independent GEE to get initial beta estimates 
   init_mod <- geeglm(formula = formula, data = data, family = gaussian,
                      id = subject_id, waves = visit,corstr = "independence") 
   #summary(init_mod)
   beta0 <- as.vector(coef(init_mod))
-  Z0 <- residuals(init_mod,"pearson") #init_mod$residuals
+  Z0 <- residuals(init_mod,"pearson") #init_mod$residuals Z0[1:5][1,]
   
   # compute initial tau estimate
-  if (time.str == "ind") {Rinv <- solve(diag(n))} # n=5 
-  if (time.str == "ar1") {Rinv <- solve(ar1_cor(alpha0, n))} 
-  if (time.str == "exch") {Rinv <- solve(exch_cor(alpha0, n))}
-  tau0 <- esttau1_exch(mdat=data, Z = Z0, Rinv = Rinv) 
+  tau0 <- esttau1_exch(mdat=data, maxT=maxT, Z = Z0, time.str = time.str,alpha0=alpha0) 
   
   while(max(abs(bdiff)) > .00000001){
-    
-    # update beta estimates with alpha0, tau0
-    Qi <- exch_cor(tau0,2) 
-    if (time.str == "ind") {Ri <- diag(n)}
-    if (time.str == "ar1") {Ri <- ar1_cor(alpha0, n)} 
-    if (time.str == "exch") {Ri <- exch_cor(alpha0, n)}
-    Fi <- kronecker(Qi,Ri)
-    zcor <- fixed2Zcor(Fi, id=data$cluster_id, waves=data$order) 
-    mod1 <- geeglm(formula = formula, data = matched_pair, family = gaussian,
-                   id = cluster_id,corstr = "fixed",zcor = zcor)
-    #summary(mod1)
-    beta1 <- as.vector(coef(mod1))
-    bdiff <- beta1 - beta0
+    betahat <- beta_hat(formula=formula,data=data, time.var=time.var, 
+                        time.str=time.str, tau=tau0, alpha=alpha0)
+    beta1 <- as.vector(betahat)
+    if (all(!is.na(betahat))){bdiff <- beta1 - beta0} #***
     
     # update tau0
-    Z1 <- residuals(mod1,"pearson") #mod1$residuals
-    if (time.str == "ind") {Rinv <- solve(diag(n))}
-    if (time.str == "ar1") {Rinv <- solve(ar1_cor(alpha0, n))} 
-    if (time.str == "exch") {Rinv <- solve(exch_cor(alpha0, n))}
-    tau0 <- esttau1_exch(mdat=data, Z = Z1, Rinv = Rinv) 
+    Z1 <- as.matrix(data$root) - model.matrix(object=formula, data = data) %*% as.matrix(betahat)
+    
+    tau00 <- esttau1_exch(mdat=data, maxT=maxT, Z = Z1, time.str = time.str,alpha0=alpha0) 
     # update alpha0 (initial alpha0 for the next iteration)
-    Qinv <- solve(exch_cor(tau0, 2))
+    if (!is.na(tau00)) {tau0 <- tau00}
+    #print(tau0)
+    
     if (time.str == "ind") {alpha0 <- 0}
     if (time.str == "ar1") {alpha0 <- estalpha1_ar1(mdat=data, Z=Z1, Qinv=Qinv)}
     if (time.str == "exch") {alpha0 <- estalpha1_exch(mdat=data, Z=Z1, Qinv=Qinv)}
@@ -273,18 +376,13 @@ qls <- function(formula, data, subject_id, cluster_id , cluster.var, time.var, t
   if (time.str == "ar1") {alpha2 <- estalpha2_ar1(alpha0)}
   if (time.str == "exch") {alpha2 <- estalpha2_exch(alpha0, mdat = data)}
   
-  # obtain final beta estimates
-  Qi <- exch_cor(tau2,2)
-  if (time.str == "ind") {Ri <- diag(n)}
-  if (time.str == "ar1") {Ri <- ar1_cor(alpha2, n)}
-  if (time.str == "exch") {Ri <- exch_cor(alpha2, n)}
-  Fi <- kronecker(Qi,Ri)
-  zcor <- fixed2Zcor(Fi, id=data$cluster_id, waves=data$order) 
-  mod <- geeglm(formula = formula, data = data, family = gaussian,
-                id = cluster_id,corstr = "fixed", zcor = zcor)
-  beta <- as.vector(coef(mod))
-  se <- summary(mod)$coefficient[,2] 
-  vcov <- vcov(mod)
+  betahat1 <- beta_hat(formula=formula,data=data, time.var=time.var, 
+                       time.str=time.str, tau=tau2, alpha=alpha2)
+  beta <- as.vector(betahat1)
+  sandwich_out <- sandwich(formula = formula, data = data, beta_hat = betahat1, 
+                           alpha = alpha2, time.str = time.str)
+  se <- sandwich_out$se
+  vcov <- sandwich_out$vcov
   
   fit <- list()
   fit$call <- match.call()
@@ -293,9 +391,10 @@ qls <- function(formula, data, subject_id, cluster_id , cluster.var, time.var, t
   fit$alpha <- alpha2
   fit$tau <- tau2
   fit$niter <- iter
-  fit$vcov <- vcov(mod)
+  fit$vcov <- vcov
   fit
 }
+
 
 
 #____________________________________________________________
@@ -321,6 +420,7 @@ adj_qls_ci <- function(model, N, level = 0.95) {
 
 
 #____________________________________________________________
+
 ### generate big cohort 
 set.seed(2)
 simnum <- 1000
@@ -336,7 +436,7 @@ id <- rep(1:N, each = maxT)
 # proportion of bav = 0 in hospital cohort
 pbav0 = 0.1
 
-# coef for baseline covariates for bav = 0 (Minimal)
+# coef for baseline covariates for bav = 0 (Minimal overlap)
 b01 <- 2.7
 b02 <- -0.25
 b03 <- -1.2
@@ -356,7 +456,7 @@ b5_r <- -2 #sex_female
 b6_r <- 2 #bsa baseline
 b7_r <- 0.5 #visit:bav
 beta_true <- cbind(b1_r, b2_r, b3_r, b4_r, b5_r, b6_r, b7_r)
-beta_true_s <- cbind(b1_r,b3_r,b7_r)
+beta_true_s <- cbind(b1_r,b3_r,b2_r,b7_r)
 p <- length(beta_true_s) # number of regression parameters
 
 
@@ -422,19 +522,17 @@ for (s in 1:simnum) {
   bsa_bl <- rep(bsa_bli, each = maxT)
   bav <- rep(bavi, each = maxT)
   
-  
   # generate time to death
   covs <- data.frame(agei, bavi)
   
   #---------------survtimes (20%/80%)---------
   # find hazrate that has mortality rate 0% (lambda=0), 20%(lambda=0.05) and 80%(lambda=0.35)
-  survtimes <- simsurv(dist = "exponential", lambdas = 0.05, 
+  survtimes <- simsurv(dist = "exponential", lambdas = 0.35, 
                        betas = c(agei = 0.01, bavi = -0.5), x = covs, maxt = 4)
   
   
-  
   # generate outcome values
-  bi <- rnorm(N, mean = 0, sd = 5)
+  bi <- rnorm(N, mean = 0, sd = 5) #----bi sd=0/0.5/1/2/5--------
   b <- rep(bi, each = maxT)
   e <- rnorm(N*maxT, mean = 0, sd = 1)
   # add the confounders (age, female, bsa_bl)
@@ -443,7 +541,7 @@ for (s in 1:simnum) {
   simdat0 <- as.data.frame(cbind(id, visit, age, female, bsa_bl, bav, root))
   
   simdat <- left_join(simdat0, survtimes, by = "id") |>
-    mutate(root = ifelse(visit > eventtime, NA, root))
+    mutate(root = ifelse(visit > eventtime, NA, root)) 
   
   
   # Matching----
@@ -463,7 +561,7 @@ for (s in 1:simnum) {
   
   # join the matches column from matched_base to matched_long
   matched_long <- matched_long %>% 
-    left_join(matched_base %>% select(id, matches), by = "id") %>%
+    left_join(matched_base %>% dplyr::select(id, matches), by = "id") %>%
     mutate(matchid = matches)
   
   # Re-arrange the dataset with cluster id and subject id
@@ -472,12 +570,14 @@ for (s in 1:simnum) {
            subject_id = rep(1:K,each=maxT),
            cluster.var = rep(rep(1:2,each = maxT), (K/2)),
            order = rep(seq(1:10),(K/2))) %>%
-    select(-matches)
+    dplyr::select(-matches) 
+  
+  matched_pair <- filter(matched_pair, !is.na(root))
   
   # fit qls with indep, exch, ar1 to sample data and save estimates and ses 
   # 1) independence
-  qls_ind <- qls(root ~  visit + bav:visit, data = matched_pair, subject_id = subject_id, 
-                 cluster_id = cluster_id, cluster.var = cluster.var, time.var=visit, time.str="ind")
+  qls_ind <- qls(root ~  visit + bav + bav:visit, data = matched_pair, subject_id = subject_id, 
+                 cluster_id = cluster_id, cluster.var = cluster.var, time.var=visit, maxT=maxT,time.str="ind")
   estbeta_ind[[s]] <- qls_ind$coefficients
   se_ind[[s]] <- qls_ind$se
   dfse_ind[[s]] <- sqrt(diag((K/(K-p))*qls_ind$vcov))
@@ -497,8 +597,8 @@ for (s in 1:simnum) {
   
   
   # 2) AR1
-  qls_ar1 <- qls(root ~  visit + bav:visit, data = matched_pair, subject_id = subject_id, 
-                 cluster_id = cluster_id, cluster.var = cluster.var, time.var=visit, time.str="ar1")
+  qls_ar1 <- qls(root ~  visit + bav + bav:visit, data = matched_pair, subject_id = subject_id, 
+                 cluster_id = cluster_id, cluster.var = cluster.var, time.var=visit, maxT=maxT,time.str="ar1")
   estbeta_ar1[[s]] <- qls_ar1$coefficients
   se_ar1[[s]] <- qls_ar1$se
   dfse_ar1[[s]] <- sqrt(diag((K/(K-p))*qls_ar1$vcov))
@@ -518,8 +618,8 @@ for (s in 1:simnum) {
   
   
   # 3) Exchangeable
-  qls_exch <- qls(root ~  visit + bav:visit, data = matched_pair, subject_id = subject_id, 
-                  cluster_id = cluster_id, cluster.var = cluster.var, time.var=visit, time.str="exch")
+  qls_exch <- qls(root ~  visit + bav + bav:visit, data = matched_pair, subject_id = subject_id, 
+                  cluster_id = cluster_id, cluster.var = cluster.var, time.var=visit, maxT=maxT,time.str="exch")
   estbeta_exch[[s]] <- qls_exch$coefficients
   se_exch[[s]] <- qls_exch$se
   dfse_exch[[s]] <- sqrt(diag((K/(K-p))*qls_exch$vcov))
@@ -536,21 +636,33 @@ for (s in 1:simnum) {
   outvec_exch[[s]] <- c(s, K, unlist(estbeta_exch[[s]]), unlist(se_exch[[s]]), unlist(dfse_ar1[[s]]),
                         unlist(relbias_exch[[s]]), unlist(mse_exch[[s]]), 
                         unlist(cp_exch[[s]]),unlist(ccp_exch[[s]]),alpha_exch[s],tau_exch[s])
+  print(s)
 }
 
 # output
-names <- c("simnum", "sample_size", "(intercept)", "visit", "vist:bav",
-           "SE(beta1)", "SE(beta2)", "SE(beta3)","DF-CorrectedSE(1)", "DF-CorrectedSE(beta2)", "DF-CorrectedSE(beta3)",
-           "RelBias(b1)","RelBias(b2)","RelBias(b3)", 
-           "MSE(b1)","MSE(b2)","MSE(b3)", "CovProb(b1)", "CovProb(b2)","CovProb(b3)",
-           "AdjCovProv(b1)","AdjCovProv(b2)","AdjCovProv(b3)","alpha","tau")
+names <- c("simnum", "sample_size", "(intercept)", "visit", "bav", "vist:bav",
+           "SE(beta1)", "SE(beta2)", "SE(beta3)","SE(beta4)",
+           "DF-CorrectedSE(1)", "DF-CorrectedSE(beta2)", "DF-CorrectedSE(beta3)","DF-CorrectedSE(beta4)",
+           "RelBias(b1)","RelBias(b2)","RelBias(b3)", "RelBias(b4)",
+           "MSE(b1)","MSE(b2)","MSE(b3)","MSE(b4)" ,
+           "CovProb(b1)", "CovProb(b2)","CovProb(b3)","CovProb(b4)",
+           "AdjCovProb(b1)","AdjCovProb(b2)","AdjCovProb(b3)","AdjCovProb(b4)","alpha","tau")
 
-outvec_ind <- do.call("rbind", outvec_ind)
+outvec_ind <- do.call("rbind", outvec_ind) 
 colnames(outvec_ind) <- names
 outvec_exch <- do.call("rbind",outvec_exch)
 colnames(outvec_exch) <- names
 outvec_ar1 <- do.call("rbind", outvec_ar1)
 colnames(outvec_ar1) <- names
+
+
+# save output
+outvec <- rbind(outvec_ind,outvec_exch,outvec_ar1)
+corstr <- rep(c("Independence","Exchangeable","AR(1)"), each = simnum)
+sample_out <- as.data.frame(cbind(corstr, outvec))
+#saveRDS(sample_out,"QLS_R8S5") # Rate0/2/8 Sig0/1/5--------
+
+
 
 outmean_ind <- c(simnum, median(outvec_ind[,2]),colMeans(outvec_ind[,c(-1,-2)]),
                  sd(outvec_ind[,3]),sd(outvec_ind[,4]),sd(outvec_ind[,5]),sd(outvec_ind[,24]),sd(outvec_ind[,25]))
