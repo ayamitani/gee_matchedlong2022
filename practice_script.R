@@ -1,3 +1,5 @@
+# Reproduce Simulation
+
 beta0 <- 1
 beta1 <- 2
 sigma <- 1
