@@ -137,7 +137,9 @@ estalpha2_exch <- function(alpha0, mdat){
   for (i in mdat$cluster_id){
     alphapart1j <- alphapart2j <- 0
     
-      t_ij <- 5 #nlevels(as.factor(mdat[mdat$cluster_id == i & mdat$cluster.var == j,]$visit))
+    t_i1 <- nlevels(as.factor(mdat[mdat$cluster_id == i & mdat$cluster.var==1,]$visit))
+    t_i2 <- nlevels(as.factor(mdat[mdat$cluster_id == i & mdat$cluster.var==2,]$visit))
+    t_ij <- max(c(t_i1, t_i2))
       if(t_ij > 1){
         alphapart1num <- alpha0 * ( t_ij - 1 )* ( alpha0 * (t_ij - 2) + 2 )
         alphapart2num <- ( t_ij - 1 ) * ( 1 + alpha0 ^ 2 * (t_ij - 1) )
@@ -358,6 +360,7 @@ qls <- function(formula, data, subject_id, cluster_id , cluster.var, time.var, m
     if (!is.na(tau00)) {tau0 <- tau00}
     #print(tau0)
     
+    Qinv <- solve(exch_cor(tau0, 2))
     if (time.str == "ind") {alpha0 <- 0}
     if (time.str == "ar1") {alpha0 <- estalpha1_ar1(mdat=data, Z=Z1, Qinv=Qinv)}
     if (time.str == "exch") {alpha0 <- estalpha1_exch(mdat=data, Z=Z1, Qinv=Qinv)}
